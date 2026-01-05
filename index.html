@@ -1,1 +1,2275 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookMaster Pro - წიგნების მენეჯმენტი</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --warning-color: #f8961e;
+            --dark-color: #1a1a2e;
+            --light-color: #f8f9fa;
+            --gray-color: #6c757d;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background-color: #f9fafc;
+            color: #333;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .loading-text {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        /* Login Page */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .login-box {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 50px;
+            width: 100%;
+            max-width: 450px;
+            transform: translateY(0);
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-logo i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .login-logo h1 {
+            font-size: 28px;
+            color: var(--dark-color);
+            font-weight: 700;
+        }
+        
+        .login-logo p {
+            color: var(--gray-color);
+            font-size: 14px;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--dark-color);
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 14px 15px;
+            border: 1.5px solid #e1e5ee;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: var(--transition);
+            background-color: white;
+        }
+        
+        .input-group input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+        
+        .input-group .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 40px;
+            color: var(--gray-color);
+            cursor: pointer;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(67, 97, 238, 0.3);
+        }
+        
+        .login-btn:active {
+            transform: translateY(0);
+        }
+        
+        .error-message {
+            color: var(--danger-color);
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+            padding: 10px;
+            background-color: rgba(247, 37, 133, 0.1);
+            border-radius: 6px;
+        }
+        
+        /* Main Page */
+        .main-container {
+            display: none;
+            min-height: 100vh;
+        }
+        
+        /* Header - No Background */
+        header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+        
+        .header-left h1 {
+            font-size: 28px;
+            color: var(--dark-color);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .header-left p {
+            color: var(--gray-color);
+            font-size: 14px;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .income-btn {
+            background: linear-gradient(90deg, #20bf55, #01baef);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .income-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(32, 191, 85, 0.3);
+        }
+        
+        .logout-btn {
+            background-color: white;
+            color: var(--danger-color);
+            border: 1.5px solid var(--danger-color);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logout-btn:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        /* Content Area */
+        .content {
+            padding: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        /* Actions Bar */
+        .actions-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .search-container {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 14px 20px;
+            padding-left: 50px;
+            border: 1.5px solid #e1e5ee;
+            border-radius: 10px;
+            font-size: 16px;
+            background-color: white;
+            transition: var(--transition);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        }
+        
+        .search-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-color);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .add-book-btn {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.2);
+        }
+        
+        .add-book-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(67, 97, 238, 0.3);
+        }
+        
+        .stats-btn {
+            background-color: white;
+            color: var(--dark-color);
+            border: 1.5px solid #e1e5ee;
+            padding: 14px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+        }
+        
+        .stats-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        /* Books Grid */
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        
+        .book-card {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+        
+        .book-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .book-image-container {
+            height: 200px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .book-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+        
+        .book-card:hover .book-image {
+            transform: scale(1.05);
+        }
+        
+        .book-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .book-info {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .book-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--dark-color);
+            line-height: 1.3;
+        }
+        
+        .book-description {
+            font-size: 14px;
+            color: var(--gray-color);
+            margin-bottom: 15px;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+        
+        .book-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .book-stock {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--success-color);
+        }
+        
+        .book-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+        
+        .sell-btn {
+            background-color: var(--warning-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: var(--transition);
+        }
+        
+        .sell-btn:hover {
+            background-color: #e76f00;
+        }
+        
+        .sell-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalFadeIn 0.4s ease-out;
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 30px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            color: var(--dark-color);
+            font-weight: 700;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--gray-color);
+            line-height: 1;
+            transition: var(--transition);
+        }
+        
+        .close-btn:hover {
+            color: var(--danger-color);
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        /* Form Styles */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 14px;
+        }
+        
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 14px;
+            border: 1.5px solid #e1e5ee;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+        
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .image-upload-container {
+            border: 2px dashed #e1e5ee;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .image-upload-container:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(67, 97, 238, 0.02);
+        }
+        
+        .image-upload-container i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .preview-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e1e5ee;
+            position: relative;
+        }
+        
+        .preview-image:hover .remove-image {
+            opacity: 1;
+        }
+        
+        .remove-image {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            opacity: 0;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            padding: 20px 30px;
+            border-top: 1px solid #eee;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: white;
+            color: var(--dark-color);
+            border: 1.5px solid #e1e5ee;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        /* Income Modal */
+        .income-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+        
+        .stat-card.income {
+            border-top: 5px solid #20bf55;
+        }
+        
+        .stat-card.books {
+            border-top: 5px solid #4361ee;
+        }
+        
+        .stat-card.sold {
+            border-top: 5px solid #f8961e;
+        }
+        
+        .stat-title {
+            font-size: 14px;
+            color: var(--gray-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 5px;
+        }
+        
+        .stat-subtitle {
+            font-size: 14px;
+            color: var(--gray-color);
+        }
+        
+        .sales-table-container {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+        }
+        
+        .sales-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .sales-table thead {
+            background-color: #f8f9fa;
+        }
+        
+        .sales-table th {
+            padding: 18px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark-color);
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .sales-table th:hover {
+            background-color: #f1f3f9;
+        }
+        
+        .sales-table th i {
+            margin-left: 8px;
+            font-size: 12px;
+            opacity: 0.5;
+        }
+        
+        .sales-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        
+        .sales-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* Book Details */
+        .book-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        
+        @media (max-width: 992px) {
+            .book-details {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .book-details-images {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .book-details-main-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .book-details-thumbnails {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        
+        .book-thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: var(--transition);
+        }
+        
+        .book-thumbnail.active {
+            border-color: var(--primary-color);
+        }
+        
+        .book-thumbnail:hover {
+            transform: scale(1.05);
+        }
+        
+        .book-details-info {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .book-details-title {
+            font-size: 32px;
+            color: var(--dark-color);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        
+        .book-details-description {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+        }
+        
+        .book-details-stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 10px;
+        }
+        
+        .details-stat {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .details-stat-label {
+            font-size: 14px;
+            color: var(--gray-color);
+            margin-bottom: 5px;
+        }
+        
+        .details-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+        
+        .details-stat-value.income {
+            color: #20bf55;
+        }
+        
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: white;
+            color: var(--dark-color);
+            padding: 16px 24px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 10000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            max-width: 400px;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast.success {
+            border-left: 5px solid #20bf55;
+        }
+        
+        .toast.error {
+            border-left: 5px solid var(--danger-color);
+        }
+        
+        .toast.warning {
+            border-left: 5px solid var(--warning-color);
+        }
+        
+        .toast-icon {
+            font-size: 24px;
+        }
+        
+        .toast.success .toast-icon {
+            color: #20bf55;
+        }
+        
+        .toast.error .toast-icon {
+            color: var(--danger-color);
+        }
+        
+        .toast.warning .toast-icon {
+            color: var(--warning-color);
+        }
+        
+        .toast-content {
+            flex: 1;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .toast-message {
+            font-size: 14px;
+            color: var(--gray-color);
+        }
+        
+        .close-toast {
+            background: none;
+            border: none;
+            color: var(--gray-color);
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 20px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .actions-bar {
+                flex-direction: column;
+            }
+            
+            .search-container {
+                min-width: 100%;
+            }
+            
+            .modal-content {
+                max-height: 95vh;
+            }
+            
+            .book-details {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .book-details-main-image {
+                height: 300px;
+            }
+            
+            .toast {
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 30px 20px;
+            }
+            
+            .books-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .add-book-btn, .stats-btn {
+                justify-content: center;
+            }
+            
+            .modal-body {
+                padding: 20px;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+            }
+            
+            .btn-primary, .btn-secondary {
+                width: 100%;
+            }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            grid-column: 1 / -1;
+        }
+        
+        .empty-state i {
+            font-size: 64px;
+            color: #e1e5ee;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h3 {
+            font-size: 20px;
+            color: var(--dark-color);
+            margin-bottom: 10px;
+        }
+        
+        .empty-state p {
+            color: var(--gray-color);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">მიმდინარეობს ჩატვირთვა...</div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="toast-content">
+            <div class="toast-title" id="toastTitle">წარმატება</div>
+            <div class="toast-message" id="toastMessage">ოპერაცია წარმატებით დასრულდა</div>
+        </div>
+        <button class="close-toast" id="closeToast">&times;</button>
+    </div>
+    
+    <!-- Login Page -->
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <div class="login-logo">
+                <i class="fas fa-book-open"></i>
+                <h1>BookMaster Pro</h1>
+                <p>წიგნების მენეჯმენტის სისტემა</p>
+            </div>
+            
+            <div class="input-group">
+                <label for="username">მომხმარებელი</label>
+                <input type="text" id="username" placeholder="შეიყვანეთ მომხმარებლის სახელი">
+            </div>
+            
+            <div class="input-group">
+                <label for="password">პაროლი</label>
+                <input type="password" id="password" placeholder="შეიყვანეთ პაროლი">
+                <span class="password-toggle" id="passwordToggle">
+                    <i class="far fa-eye"></i>
+                </span>
+            </div>
+            
+            <button class="login-btn" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i> შესვლა
+            </button>
+            <div class="error-message" id="loginError">
+                <i class="fas fa-exclamation-circle"></i> არასწორი მომხმარებელი ან პაროლი!
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Page -->
+    <div class="main-container" id="mainPage">
+        <header>
+            <div class="header-left">
+                <h1>წიგნების მენეჯმენტი</h1>
+                <p>ეს გვერდი არის წიგნების მენეჯმენტის</p>
+            </div>
+            <div class="header-right">
+                <button class="income-btn" id="incomeBtn">
+                    <i class="fas fa-chart-line"></i> ჩემი შემოსავალი
+                </button>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> გასვლა
+                </button>
+            </div>
+        </header>
+        
+        <div class="content">
+            <div class="actions-bar">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="searchInput" placeholder="ძებნა წიგნის სახელით ან აღწერით...">
+                </div>
+                <div class="action-buttons">
+                    <button class="stats-btn" id="salesStatsBtn">
+                        <i class="fas fa-chart-bar"></i> გაყიდვების სტატისტიკა
+                    </button>
+                    <button class="add-book-btn" id="addBookBtn">
+                        <i class="fas fa-plus-circle"></i> ახალი წიგნის დამატება
+                    </button>
+                </div>
+            </div>
+            
+            <div class="books-grid" id="booksGrid">
+                <!-- Books will be loaded here dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Book Modal -->
+    <div class="modal" id="addBookModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">ახალი წიგნის დამატება</h2>
+                <button class="close-btn" id="closeAddModal">&times;</button>
+            </div>
+            
+            <form id="addBookForm">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="bookTitle">წიგნის სახელი *</label>
+                            <input type="text" id="bookTitle" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bookAuthor">ავტორი</label>
+                            <input type="text" id="bookAuthor" placeholder="შეიყვანეთ ავტორის სახელი">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bookStock">რაოდენობა მარაგში *</label>
+                            <input type="number" id="bookStock" min="1" value="1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bookPrice">ფასი (ლარი) *</label>
+                            <input type="number" id="bookPrice" min="1" value="35" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bookDescription">აღწერა</label>
+                        <textarea id="bookDescription" placeholder="წიგნის აღწერა..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bookImages">ფოტოები (მაქსიმუმ 10)</label>
+                        <div class="image-upload-container" id="imageUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h3>გადაათრიეთ ფოტოები აქ ან დააჭირეთ ფაილის ასარჩევად</h3>
+                            <p>PNG, JPG, GIF ფორმატები, მაქსიმუმ 5MB თითოეული</p>
+                            <input type="file" id="bookImages" accept="image/*" multiple style="display: none;">
+                        </div>
+                        <div class="image-preview" id="imagePreview">
+                            <!-- Image previews will be added here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="cancelAddBook">გაუქმება</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> წიგნის დამატება
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Book Details Modal -->
+    <div class="modal" id="bookDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">წიგნის დეტალები</h2>
+                <button class="close-btn" id="closeDetailsModal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="book-details" id="bookDetailsContent">
+                    <!-- Book details will be loaded here dynamically -->
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="closeDetailsBtn">დახურვა</button>
+                <button type="button" class="btn-primary" id="sellBookBtn">
+                    <i class="fas fa-shopping-cart"></i> წიგნის გაყიდვა
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Income Modal -->
+    <div class="modal" id="incomeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">ჩემი შემოსავალი</h2>
+                <button class="close-btn" id="closeIncomeModal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="income-stats">
+                    <div class="stat-card income">
+                        <div class="stat-title">სულ შემოსავალი</div>
+                        <div class="stat-value" id="totalIncome">0 ₾</div>
+                        <div class="stat-subtitle">ყველა დროის</div>
+                    </div>
+                    
+                    <div class="stat-card books">
+                        <div class="stat-title">წიგნების რაოდენობა</div>
+                        <div class="stat-value" id="totalBooks">0</div>
+                        <div class="stat-subtitle">სულ მარაგში</div>
+                    </div>
+                    
+                    <div class="stat-card sold">
+                        <div class="stat-title">გაყიდული წიგნები</div>
+                        <div class="stat-value" id="totalSold">0</div>
+                        <div class="stat-subtitle">ყველა დროის</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-bottom: 20px; color: var(--dark-color);">გაყიდვების ისტორია</h3>
+                
+                <div class="sales-table-container">
+                    <table class="sales-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="title">
+                                    წიგნის სახელი <i class="fas fa-sort"></i>
+                                </th>
+                                <th data-sort="sold">
+                                    გაყიდული რაოდენობა <i class="fas fa-sort"></i>
+                                </th>
+                                <th data-sort="revenue">
+                                    შემოსავალი <i class="fas fa-sort"></i>
+                                </th>
+                                <th data-sort="lastSold">
+                                    ბოლო გაყიდვა <i class="fas fa-sort"></i>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesTableBody">
+                            <!-- Sales data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn-secondary" id="exportSalesBtn">
+                        <i class="fas fa-download"></i> ექსპორტი Excel-ში
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Update Stock Modal -->
+    <div class="modal" id="updateStockModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">მარაგის განახლება</h2>
+                <button class="close-btn" id="closeStockModal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="currentStock">მიმდინარე რაოდენობა</label>
+                    <input type="number" id="currentStock" disabled>
+                </div>
+                
+                <div class="form-group">
+                    <label for="newStock">ახალი რაოდენობა *</label>
+                    <input type="number" id="newStock" min="1" required>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="cancelStockUpdate">გაუქმება</button>
+                <button type="button" class="btn-primary" id="saveStockUpdate">განახლება</button>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        // Login credentials
+        const VALID_USERNAME = "alex";
+        const VALID_PASSWORD = "2911";
+        const DEFAULT_BOOK_PRICE = 35;
+        
+        // Application state
+        let books = [];
+        let currentUser = null;
+        let selectedImages = [];
+        let currentBookId = null;
+        let nextBookId = 1;
+        let salesHistory = [];
+        let sortDirection = { title: 'asc', sold: 'desc', revenue: 'desc', lastSold: 'desc' };
+        
+        // DOM Elements
+        const loginPage = document.getElementById('loginPage');
+        const mainPage = document.getElementById('mainPage');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const passwordToggle = document.getElementById('passwordToggle');
+        const loginError = document.getElementById('loginError');
+        const addBookBtn = document.getElementById('addBookBtn');
+        const incomeBtn = document.getElementById('incomeBtn');
+        const salesStatsBtn = document.getElementById('salesStatsBtn');
+        const addBookModal = document.getElementById('addBookModal');
+        const closeAddModal = document.getElementById('closeAddModal');
+        const cancelAddBook = document.getElementById('cancelAddBook');
+        const addBookForm = document.getElementById('addBookForm');
+        const bookDetailsModal = document.getElementById('bookDetailsModal');
+        const closeDetailsModal = document.getElementById('closeDetailsModal');
+        const closeDetailsBtn = document.getElementById('closeDetailsBtn');
+        const sellBookBtn = document.getElementById('sellBookBtn');
+        const incomeModal = document.getElementById('incomeModal');
+        const closeIncomeModal = document.getElementById('closeIncomeModal');
+        const updateStockModal = document.getElementById('updateStockModal');
+        const closeStockModal = document.getElementById('closeStockModal');
+        const cancelStockUpdate = document.getElementById('cancelStockUpdate');
+        const saveStockUpdate = document.getElementById('saveStockUpdate');
+        const booksGrid = document.getElementById('booksGrid');
+        const searchInput = document.getElementById('searchInput');
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        const bookImagesInput = document.getElementById('bookImages');
+        const imagePreview = document.getElementById('imagePreview');
+        const toast = document.getElementById('toast');
+        const toastTitle = document.getElementById('toastTitle');
+        const toastMessage = document.getElementById('toastMessage');
+        const closeToast = document.getElementById('closeToast');
+        const salesTableBody = document.getElementById('salesTableBody');
+        const totalIncome = document.getElementById('totalIncome');
+        const totalBooks = document.getElementById('totalBooks');
+        const totalSold = document.getElementById('totalSold');
+        const exportSalesBtn = document.getElementById('exportSalesBtn');
+        
+        // Initialize the app
+        async function initApp() {
+            // Show loading overlay
+            showLoading('სისტემის ჩატვირთვა...');
+            
+            // Simulate loading data
+            await simulateLoad(1500);
+            
+            // Load data from localStorage or initialize with sample data
+            loadData();
+            
+            // Render books
+            renderBooks(books);
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Hide loading overlay
+            hideLoading();
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Login
+            loginBtn.addEventListener('click', handleLogin);
+            logoutBtn.addEventListener('click', handleLogout);
+            
+            // Login with Enter key
+            usernameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
+            
+            passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
+            
+            // Password toggle visibility
+            passwordToggle.addEventListener('click', () => {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                passwordToggle.innerHTML = type === 'password' ? 
+                    '<i class="far fa-eye"></i>' : '<i class="far fa-eye-slash"></i>';
+            });
+            
+            // Modals
+            addBookBtn.addEventListener('click', () => {
+                addBookModal.style.display = 'flex';
+                selectedImages = [];
+                imagePreview.innerHTML = '';
+                addBookForm.reset();
+                document.getElementById('bookPrice').value = DEFAULT_BOOK_PRICE;
+            });
+            
+            closeAddModal.addEventListener('click', () => {
+                addBookModal.style.display = 'none';
+            });
+            
+            cancelAddBook.addEventListener('click', () => {
+                addBookModal.style.display = 'none';
+            });
+            
+            incomeBtn.addEventListener('click', () => {
+                updateIncomeStats();
+                incomeModal.style.display = 'flex';
+            });
+            
+            salesStatsBtn.addEventListener('click', () => {
+                updateIncomeStats();
+                incomeModal.style.display = 'flex';
+            });
+            
+            closeIncomeModal.addEventListener('click', () => {
+                incomeModal.style.display = 'none';
+            });
+            
+            closeDetailsModal.addEventListener('click', () => {
+                bookDetailsModal.style.display = 'none';
+            });
+            
+            closeDetailsBtn.addEventListener('click', () => {
+                bookDetailsModal.style.display = 'none';
+            });
+            
+            sellBookBtn.addEventListener('click', handleSellBook);
+            
+            closeStockModal.addEventListener('click', () => {
+                updateStockModal.style.display = 'none';
+            });
+            
+            cancelStockUpdate.addEventListener('click', () => {
+                updateStockModal.style.display = 'none';
+            });
+            
+            saveStockUpdate.addEventListener('click', handleStockUpdate);
+            
+            // Add book form
+            addBookForm.addEventListener('submit', handleAddBook);
+            
+            // Image upload
+            imageUploadArea.addEventListener('click', () => {
+                bookImagesInput.click();
+            });
+            
+            imageUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.borderColor = 'var(--primary-color)';
+                imageUploadArea.style.backgroundColor = 'rgba(67, 97, 238, 0.05)';
+            });
+            
+            imageUploadArea.addEventListener('dragleave', () => {
+                imageUploadArea.style.borderColor = '#e1e5ee';
+                imageUploadArea.style.backgroundColor = 'white';
+            });
+            
+            imageUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.borderColor = '#e1e5ee';
+                imageUploadArea.style.backgroundColor = 'white';
+                
+                if (e.dataTransfer.files.length) {
+                    handleImageUpload(e.dataTransfer.files);
+                }
+            });
+            
+            bookImagesInput.addEventListener('change', (e) => {
+                handleImageUpload(e.target.files);
+            });
+            
+            // Search
+            searchInput.addEventListener('input', handleSearch);
+            
+            // Toast
+            closeToast.addEventListener('click', () => {
+                toast.classList.remove('show');
+            });
+            
+            // Sales table sorting
+            document.querySelectorAll('.sales-table th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const sortBy = th.getAttribute('data-sort');
+                    sortSalesTable(sortBy);
+                });
+            });
+            
+            // Export sales
+            exportSalesBtn.addEventListener('click', exportSalesToExcel);
+            
+            // Close modals when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            });
+        }
+        
+        // Load data from localStorage or initialize
+        function loadData() {
+            const savedBooks = localStorage.getItem('bookmaster_books');
+            const savedSales = localStorage.getItem('bookmaster_sales');
+            const savedNextId = localStorage.getItem('bookmaster_nextId');
+            
+            if (savedBooks && savedSales) {
+                books = JSON.parse(savedBooks);
+                salesHistory = JSON.parse(savedSales);
+                nextBookId = parseInt(savedNextId) || books.length + 1;
+            } else {
+                // Initialize with sample data
+                initializeSampleData();
+            }
+        }
+        
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('bookmaster_books', JSON.stringify(books));
+            localStorage.setItem('bookmaster_sales', JSON.stringify(salesHistory));
+            localStorage.setItem('bookmaster_nextId', nextBookId.toString());
+        }
+        
+        // Initialize with sample data
+        function initializeSampleData() {
+            books = [
+                {
+                    id: 1,
+                    title: "ქართული ლიტერატურა",
+                    author: "ნოდარ დუმბაძე",
+                    description: "ქართული ლიტერატურის ისტორია უძველესი დროიდან დღემდე",
+                    stock: 12,
+                    initialStock: 20,
+                    price: 35,
+                    images: ["https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&h=400&fit=crop"],
+                    sold: 8,
+                    lastSold: "2023-10-15"
+                },
+                {
+                    id: 2,
+                    title: "ფიზიკა",
+                    author: "ალბერტ აინშტაინი",
+                    description: "საშუალო სკოლის ფიზიკის სახელმძღვანელო",
+                    stock: 8,
+                    initialStock: 15,
+                    price: 35,
+                    images: ["https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&h=400&fit=crop"],
+                    sold: 7,
+                    lastSold: "2023-11-05"
+                },
+                {
+                    id: 3,
+                    title: "მათემატიკა",
+                    author: "იოჰან კარლ ფრიდრიხ გაუსი",
+                    description: "მათემატიკის სახელმძღვანელო მე-10 კლასისთვის",
+                    stock: 15,
+                    initialStock: 25,
+                    price: 35,
+                    images: ["https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&h=400&fit=crop"],
+                    sold: 10,
+                    lastSold: "2023-10-28"
+                },
+                {
+                    id: 4,
+                    title: "ისტორია",
+                    author: "ივანე ჯავახიშვილი",
+                    description: "საქართველოს ისტორია უძველესი დროიდან",
+                    stock: 5,
+                    initialStock: 10,
+                    price: 35,
+                    images: ["https://images.unsplash.com/photo-1585779034823-7e9ac8faec70?w=600&h=400&fit=crop"],
+                    sold: 5,
+                    lastSold: "2023-09-20"
+                },
+                {
+                    id: 5,
+                    title: "ბიოლოგია",
+                    author: "ჩარლზ დარვინი",
+                    description: "ბიოლოგიის სახელმძღვანელო საშუალო სკოლისთვის",
+                    stock: 9,
+                    initialStock: 15,
+                    price: 35,
+                    images: ["https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&h=400&fit=crop"],
+                    sold: 6,
+                    lastSold: "2023-11-10"
+                },
+                {
+                    id: 6,
+                    title: "ქიმია",
+                    author: "დიმიტრი მენდელეევი",
+                    description: "ქიმიის საფუძვლები და ექსპერიმენტები",
+                    stock: 7,
+                    initialStock: 12,
+                    price: 35,
+                    images: ["https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop"],
+                    sold: 5,
+                    lastSold: "2023-10-05"
+                },
+                {
+                    id: 7,
+                    title: "გეოგრაფია",
+                    author: "ალექსანდრე ჰუმბოლდტი",
+                    description: "მსოფლიოს ფიზიკური და ეკონომიკური გეოგრაფია",
+                    stock: 11,
+                    initialStock: 18,
+                    price: 35,
+                    images: ["https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=600&h=400&fit=crop"],
+                    sold: 7,
+                    lastSold: "2023-11-12"
+                },
+                {
+                    id: 8,
+                    title: "ინგლისური ენა",
+                    author: "უილიამ შექსპირი",
+                    description: "ინგლისური ენის სწავლების სახელმძღვანელო",
+                    stock: 20,
+                    initialStock: 30,
+                    price: 35,
+                    images: ["https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=400&fit=crop"],
+                    sold: 10,
+                    lastSold: "2023-11-15"
+                },
+                {
+                    id: 9,
+                    title: "ფრანგული ენა",
+                    author: "ვიქტორ ჰიუგო",
+                    description: "ფრანგული ენის საწყისი კურსი",
+                    stock: 4,
+                    initialStock: 10,
+                    price: 35,
+                    images: ["https://images.unsplash.com/photo-1558036117-15e82a2c9a9a?w=600&h=400&fit=crop"],
+                    sold: 6,
+                    lastSold: "2023-10-30"
+                },
+                {
+                    id: 10,
+                    title: "ფილოსოფია",
+                    author: "პლატონი",
+                    description: "ფილოსოფიური მიმდინარეობები და აზროვნება",
+                    stock: 6,
+                    initialStock: 12,
+                    price: 35,
+                    images: ["https://images.unsplash.com/photo-1589998059171-988d887df646?w=600&h=400&fit=crop"],
+                    sold: 6,
+                    lastSold: "2023-10-18"
+                }
+            ];
+            
+            // Initialize sales history from books
+            salesHistory = books.map(book => ({
+                bookId: book.id,
+                title: book.title,
+                sold: book.sold || 0,
+                revenue: (book.sold || 0) * book.price,
+                lastSold: book.lastSold || new Date().toISOString().split('T')[0]
+            }));
+            
+            nextBookId = books.length + 1;
+            
+            saveData();
+        }
+        
+        // Handle login
+        async function handleLogin() {
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            if (!username || !password) {
+                showError('გთხოვთ შეავსოთ ორივე ველი');
+                return;
+            }
+            
+            showLoading('ავთენტიფიკაცია...');
+            
+            // Simulate API call delay
+            await simulateLoad(1000);
+            
+            if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+                currentUser = username;
+                loginError.style.display = 'none';
+                loginPage.style.display = 'none';
+                mainPage.style.display = 'block';
+                showSuccess('წარმატებით შეხვედით სისტემაში!');
+            } else {
+                showError('არასწორი მომხმარებელი ან პაროლი!');
+                loginError.style.display = 'block';
+            }
+            
+            hideLoading();
+        }
+        
+        // Handle logout
+        function handleLogout() {
+            currentUser = null;
+            usernameInput.value = '';
+            passwordInput.value = '';
+            mainPage.style.display = 'none';
+            loginPage.style.display = 'flex';
+            showSuccess('წარმატებით გამოხვედით სისტემიდან');
+        }
+        
+        // Render books to grid
+        function renderBooks(booksToRender) {
+            booksGrid.innerHTML = '';
+            
+            if (booksToRender.length === 0) {
+                booksGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-book"></i>
+                        <h3>წიგნები ვერ მოიძებნა</h3>
+                        <p>სცადეთ სხვა საძიებო სიტყვა ან დაამატეთ ახალი წიგნი</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            booksToRender.forEach(book => {
+                const bookCard = document.createElement('div');
+                bookCard.className = 'book-card';
+                bookCard.dataset.id = book.id;
+                
+                const soldCount = book.sold || 0;
+                const revenue = soldCount * book.price;
+                
+                bookCard.innerHTML = `
+                    <div class="book-image-container">
+                        <img src="${book.images[0]}" alt="${book.title}" class="book-image">
+                        ${soldCount > 5 ? `<div class="book-badge">პოპულარული</div>` : ''}
+                    </div>
+                    <div class="book-info">
+                        <h3 class="book-title">${book.title}</h3>
+                        ${book.author ? `<p style="font-size: 14px; color: #777; margin-bottom: 5px;">${book.author}</p>` : ''}
+                        <p class="book-description">${book.description}</p>
+                        <div class="book-footer">
+                            <div>
+                                <div class="book-stock">მარაგში: ${book.stock}</div>
+                                <div class="book-price">${book.price} ₾</div>
+                            </div>
+                            <button class="sell-btn" ${book.stock <= 0 ? 'disabled' : ''}>
+                                ${book.stock <= 0 ? 'გაყიდულია' : 'გაყიდვა'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Add event listeners
+                bookCard.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('sell-btn')) {
+                        openBookDetails(book.id);
+                    }
+                });
+                
+                const sellBtn = bookCard.querySelector('.sell-btn');
+                sellBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (book.stock > 0) {
+                        sellBook(book.id);
+                    }
+                });
+                
+                booksGrid.appendChild(bookCard);
+            });
+        }
+        
+        // Handle search
+        function handleSearch() {
+            const query = searchInput.value.trim().toLowerCase();
+            
+            if (!query) {
+                renderBooks(books);
+                return;
+            }
+            
+            const filteredBooks = books.filter(book => 
+                book.title.toLowerCase().includes(query) || 
+                (book.description && book.description.toLowerCase().includes(query)) ||
+                (book.author && book.author.toLowerCase().includes(query))
+            );
+            
+            renderBooks(filteredBooks);
+        }
+        
+        // Open book details
+        function openBookDetails(bookId) {
+            const book = books.find(b => b.id === bookId);
+            if (!book) return;
+            
+            currentBookId = bookId;
+            
+            const soldCount = book.sold || 0;
+            const revenue = soldCount * book.price;
+            
+            const detailsContent = document.getElementById('bookDetailsContent');
+            detailsContent.innerHTML = `
+                <div class="book-details-images">
+                    <img src="${book.images[0]}" alt="${book.title}" class="book-details-main-image" id="mainBookImage">
+                    <div class="book-details-thumbnails">
+                        ${book.images.map((img, index) => `
+                            <img src="${img}" alt="${book.title} - სურათი ${index+1}" 
+                                 class="book-thumbnail ${index === 0 ? 'active' : ''}" 
+                                 data-index="${index}">
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="book-details-info">
+                    <h2 class="book-details-title">${book.title}</h2>
+                    ${book.author ? `<p style="font-size: 16px; color: #555; margin-bottom: 10px;"><strong>ავტორი:</strong> ${book.author}</p>` : ''}
+                    <p class="book-details-description">${book.description}</p>
+                    
+                    <div class="book-details-stats">
+                        <div class="details-stat">
+                            <div class="details-stat-label">მარაგში</div>
+                            <div class="details-stat-value">${book.stock}</div>
+                        </div>
+                        <div class="details-stat">
+                            <div class="details-stat-label">გაყიდული</div>
+                            <div class="details-stat-value">${soldCount}</div>
+                        </div>
+                        <div class="details-stat">
+                            <div class="details-stat-label">ფასი</div>
+                            <div class="details-stat-value">${book.price} ₾</div>
+                        </div>
+                        <div class="details-stat">
+                            <div class="details-stat-label">შემოსავალი</div>
+                            <div class="details-stat-value income">${revenue} ₾</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <button class="btn-secondary" id="updateStockBtn">
+                            <i class="fas fa-boxes"></i> მარაგის განახლება
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add event listeners to thumbnails
+            const thumbnails = detailsContent.querySelectorAll('.book-thumbnail');
+            const mainImage = document.getElementById('mainBookImage');
+            
+            thumbnails.forEach(thumb => {
+                thumb.addEventListener('click', () => {
+                    thumbnails.forEach(t => t.classList.remove('active'));
+                    thumb.classList.add('active');
+                    mainImage.src = thumb.src;
+                });
+            });
+            
+            // Update stock button
+            const updateStockBtn = detailsContent.querySelector('#updateStockBtn');
+            updateStockBtn.addEventListener('click', () => {
+                const book = books.find(b => b.id === currentBookId);
+                if (book) {
+                    document.getElementById('currentStock').value = book.stock;
+                    document.getElementById('newStock').value = book.stock;
+                    updateStockModal.style.display = 'flex';
+                    bookDetailsModal.style.display = 'none';
+                }
+            });
+            
+            bookDetailsModal.style.display = 'flex';
+        }
+        
+        // Handle sell book
+        function sellBook(bookId) {
+            const bookIndex = books.findIndex(b => b.id === bookId);
+            if (bookIndex === -1 || books[bookIndex].stock <= 0) return;
+            
+            // Update book stock
+            books[bookIndex].stock -= 1;
+            books[bookIndex].sold = (books[bookIndex].sold || 0) + 1;
+            books[bookIndex].lastSold = new Date().toISOString().split('T')[0];
+            
+            // Update sales history
+            const salesIndex = salesHistory.findIndex(s => s.bookId === bookId);
+            if (salesIndex !== -1) {
+                salesHistory[salesIndex].sold += 1;
+                salesHistory[salesIndex].revenue = salesHistory[salesIndex].sold * books[bookIndex].price;
+                salesHistory[salesIndex].lastSold = books[bookIndex].lastSold;
+            } else {
+                salesHistory.push({
+                    bookId: bookId,
+                    title: books[bookIndex].title,
+                    sold: 1,
+                    revenue: books[bookIndex].price,
+                    lastSold: books[bookIndex].lastSold
+                });
+            }
+            
+            // Save data and update UI
+            saveData();
+            renderBooks(books);
+            showSuccess(`"${books[bookIndex].title}" წარმატებით გაიყიდა!`);
+        }
+        
+        // Handle sell book from details modal
+        function handleSellBook() {
+            if (!currentBookId) return;
+            
+            const book = books.find(b => b.id === currentBookId);
+            if (!book || book.stock <= 0) {
+                showError('ეს წიგნი ამოწურულია!');
+                return;
+            }
+            
+            sellBook(currentBookId);
+            
+            // Update details modal if still open
+            if (bookDetailsModal.style.display === 'flex') {
+                openBookDetails(currentBookId);
+            }
+        }
+        
+        // Handle stock update
+        function handleStockUpdate() {
+            const newStock = parseInt(document.getElementById('newStock').value);
+            
+            if (isNaN(newStock) || newStock < 0) {
+                showError('გთხოვთ შეიყვანოთ სწორი რიცხვი');
+                return;
+            }
+            
+            const bookIndex = books.findIndex(b => b.id === currentBookId);
+            if (bookIndex !== -1) {
+                books[bookIndex].stock = newStock;
+                saveData();
+                renderBooks(books);
+                updateStockModal.style.display = 'none';
+                
+                // Reopen details modal
+                openBookDetails(currentBookId);
+                
+                showSuccess('მარაგი წარმატებით განახლდა!');
+            }
+        }
+        
+        // Handle add book
+        async function handleAddBook(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('bookTitle').value.trim();
+            const author = document.getElementById('bookAuthor').value.trim();
+            const stock = parseInt(document.getElementById('bookStock').value);
+            const price = parseInt(document.getElementById('bookPrice').value);
+            const description = document.getElementById('bookDescription').value.trim();
+            
+            if (!title || isNaN(stock) || stock < 1 || isNaN(price) || price < 1) {
+                showError('გთხოვთ შეავსოთ სავალდებულო ველები სწორად');
+                return;
+            }
+            
+            showLoading('წიგნის დამატება...');
+            await simulateLoad(800);
+            
+            // Create new book
+            const newBook = {
+                id: nextBookId++,
+                title,
+                author: author || null,
+                description: description || 'აღწერა არ არის მითითებული',
+                stock,
+                initialStock: stock,
+                price,
+                images: selectedImages.length > 0 ? selectedImages : ["https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=600&h=400&fit=crop"],
+                sold: 0,
+                lastSold: null
+            };
+            
+            // Add to books array
+            books.push(newBook);
+            
+            // Add to sales history
+            salesHistory.push({
+                bookId: newBook.id,
+                title: newBook.title,
+                sold: 0,
+                revenue: 0,
+                lastSold: null
+            });
+            
+            // Save data and update UI
+            saveData();
+            renderBooks(books);
+            
+            // Close modal and reset form
+            addBookModal.style.display = 'none';
+            addBookForm.reset();
+            document.getElementById('bookPrice').value = DEFAULT_BOOK_PRICE;
+            selectedImages = [];
+            imagePreview.innerHTML = '';
+            
+            hideLoading();
+            showSuccess(`"${title}" წარმატებით დაემატა!`);
+        }
+        
+        // Handle image upload
+        function handleImageUpload(files) {
+            const fileList = Array.from(files);
+            
+            // Limit to 10 images
+            if (selectedImages.length + fileList.length > 10) {
+                showError('მაქსიმუმ 10 ფოტოს დამატება შეგიძლიათ');
+                return;
+            }
+            
+            fileList.forEach(file => {
+                if (!file.type.startsWith('image/')) {
+                    showError(`ფაილი "${file.name}" არ არის სურათი`);
+                    return;
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    showError(`სურათი "${file.name}" აღემატება 5MB-ს`);
+                    return;
+                }
+                
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    selectedImages.push(event.target.result);
+                    createImagePreview(event.target.result, selectedImages.length - 1);
+                };
+                
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // Create image preview
+        function createImagePreview(src, index) {
+            const container = document.createElement('div');
+            container.style.position = 'relative';
+            container.style.display = 'inline-block';
+            
+            const img = document.createElement('img');
+            img.src = src;
+            img.className = 'preview-image';
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-image';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.addEventListener('click', () => {
+                selectedImages.splice(index, 1);
+                container.remove();
+                // Reindex remaining images
+                const previews = imagePreview.querySelectorAll('div');
+                previews.forEach((preview, i) => {
+                    const btn = preview.querySelector('.remove-image');
+                    btn.dataset.index = i;
+                });
+            });
+            
+            container.appendChild(img);
+            container.appendChild(removeBtn);
+            imagePreview.appendChild(container);
+        }
+        
+        // Update income stats
+        function updateIncomeStats() {
+            // Calculate totals
+            const totalBooksCount = books.reduce((sum, book) => sum + book.stock, 0);
+            const totalSoldCount = salesHistory.reduce((sum, sale) => sum + sale.sold, 0);
+            const totalIncomeValue = salesHistory.reduce((sum, sale) => sum + sale.revenue, 0);
+            
+            // Update UI
+            totalBooks.textContent = totalBooksCount;
+            totalSold.textContent = totalSoldCount;
+            totalIncome.textContent = `${totalIncomeValue} ₾`;
+            
+            // Update sales table
+            renderSalesTable();
+        }
+        
+        // Render sales table
+        function renderSalesTable(sortedSales = salesHistory) {
+            salesTableBody.innerHTML = '';
+            
+            if (sortedSales.length === 0) {
+                salesTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: var(--gray-color);">
+                            გაყიდვების ისტორია ცარიელია
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            sortedSales.forEach(sale => {
+                const book = books.find(b => b.id === sale.bookId);
+                if (!book) return;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${sale.title}</td>
+                    <td>${sale.sold}</td>
+                    <td>${sale.revenue} ₾</td>
+                    <td>${sale.lastSold ? new Date(sale.lastSold).toLocaleDateString('ka-GE') : 'არ არის'}</td>
+                `;
+                salesTableBody.appendChild(row);
+            });
+        }
+        
+        // Sort sales table
+        function sortSalesTable(sortBy) {
+            const sortedSales = [...salesHistory];
+            
+            // Toggle sort direction
+            const direction = sortDirection[sortBy] === 'asc' ? 'desc' : 'asc';
+            sortDirection[sortBy] = direction;
+            
+            // Update sort icons
+            document.querySelectorAll('.sales-table th i').forEach(icon => {
+                icon.className = 'fas fa-sort';
+            });
+            
+            const currentIcon = document.querySelector(`.sales-table th[data-sort="${sortBy}"] i`);
+            currentIcon.className = direction === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+            
+            // Sort array
+            sortedSales.sort((a, b) => {
+                let aValue = a[sortBy];
+                let bValue = b[sortBy];
+                
+                // Handle dates
+                if (sortBy === 'lastSold') {
+                    aValue = aValue ? new Date(aValue).getTime() : 0;
+                    bValue = bValue ? new Date(bValue).getTime() : 0;
+                }
+                
+                // Handle strings
+                if (sortBy === 'title') {
+                    aValue = aValue ? aValue.toLowerCase() : '';
+                    bValue = bValue ? bValue.toLowerCase() : '';
+                }
+                
+                if (direction === 'asc') {
+                    return aValue > bValue ? 1 : -1;
+                } else {
+                    return aValue < bValue ? 1 : -1;
+                }
+            });
+            
+            renderSalesTable(sortedSales);
+        }
+        
+        // Export sales to Excel
+        function exportSalesToExcel() {
+            showLoading('ექსპორტის მომზადება...');
+            
+            // Create CSV content
+            let csv = 'წიგნის სახელი,გაყიდული რაოდენობა,შემოსავალი (₾),ბოლო გაყიდვა\n';
+            
+            salesHistory.forEach(sale => {
+                const lastSold = sale.lastSold ? new Date(sale.lastSold).toLocaleDateString('ka-GE') : 'არ არის';
+                csv += `"${sale.title}",${sale.sold},${sale.revenue},"${lastSold}"\n`;
+            });
+            
+            // Create download link
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `გაყიდვების_ისტორია_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            hideLoading();
+            showSuccess('ექსპორტი წარმატებით დასრულდა!');
+        }
+        
+        // Show loading overlay
+        function showLoading(text = 'მიმდინარეობს ჩატვირთვა...') {
+            loadingText.textContent = text;
+            loadingOverlay.style.display = 'flex';
+        }
+        
+        // Hide loading overlay
+        function hideLoading() {
+            loadingOverlay.style.display = 'none';
+        }
+        
+        // Simulate loading delay
+        function simulateLoad(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // Show toast notification
+        function showToast(type, title, message) {
+            toast.className = `toast ${type}`;
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+            
+            // Update icon based on type
+            const icon = toast.querySelector('.toast-icon i');
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle';
+            } else if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle';
+            } else if (type === 'warning') {
+                icon.className = 'fas fa-exclamation-triangle';
+            }
+            
+            toast.classList.add('show');
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Show success toast
+        function showSuccess(message) {
+            showToast('success', 'წარმატება', message);
+        }
+        
+        // Show error toast
+        function showError(message) {
+            showToast('error', 'შეცდომა', message);
+        }
+        
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
