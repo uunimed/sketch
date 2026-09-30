@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ღონისძიების მართვა</title>
+    <title>სისტემა</title>
     
     <script type="importmap">
     {
@@ -297,7 +297,7 @@
                             <div className="text-indigo-600 bg-indigo-50 p-1.5 rounded border border-indigo-100 shadow-sm">
                                 <Icons.Event />
                             </div>
-                            ღონისძიების მართვა
+                            მართვა
                         </div>
                         
                         <div>
@@ -310,8 +310,8 @@
                             ) : (
                                 <button onClick={() => setShowLoginModal(true)} className="flex items-center gap-1.5 md:gap-2 px-2 py-1.5 md:px-3 md:py-2 bg-slate-900 text-white hover:bg-slate-800 rounded-md md:rounded-lg text-[10px] md:text-xs font-bold transition-all shadow-md">
                                     <Icons.Settings />
-                                    <span className="hidden sm:inline">ადმინისტრატორი</span>
-                                    <span className="sm:hidden">ადმინი</span>
+                                    <span className="hidden sm:inline"></span>
+                                    <span className="sm:hidden"></span>
                                 </button>
                             )}
                         </div>
@@ -359,8 +359,8 @@
                                         <tr className="text-slate-500 text-[8px] md:text-[10px] font-bold uppercase tracking-wider">
                                             <th className="py-2 px-1 md:py-3 md:px-3 w-1/5 truncate">სტუმარი</th>
                                             <th className="py-2 px-1 md:py-3 md:px-3 w-1/5 text-center truncate">სტატუსი</th>
-                                            <th className="py-2 px-1 md:py-3 md:px-3 w-1/5 text-right truncate">ბინა</th>
-                                            <th className="py-2 px-1 md:py-3 md:px-3 w-1/5 text-right truncate">საკვები</th>
+                                            <th className="py-2 px-1 md:py-3 md:px-3 w-1/5 text-right truncate">ბინა (გადასახდელი)</th>
+                                            <th className="py-2 px-1 md:py-3 md:px-3 w-1/5 text-right truncate">საკვები (გადასახდელი)</th>
                                             <th className="py-2 px-1 md:py-3 md:px-3 w-1/5 text-right text-indigo-700 bg-indigo-50/80 truncate">სრული</th>
                                         </tr>
                                     </thead>
@@ -441,11 +441,11 @@
                         <div className="w-full lg:w-1/3 flex flex-col gap-3 md:gap-4">
                             
                             <div className="bg-white rounded-lg md:rounded-xl shadow-sm border border-slate-200 p-3 md:p-5">
-                                <h2 className="text-xs md:text-sm font-black text-slate-800 mb-3 md:mb-4 uppercase tracking-wider border-b border-slate-100 pb-2">ჯამური მონაცემები</h2>
+                                <h2 className="text-xs md:text-sm font-black text-slate-800 mb-3 md:mb-4 uppercase tracking-wider border-b border-slate-100 pb-2">ჯამური</h2>
                                 
                                 <div className="space-y-2 md:space-y-3">
                                     <div className="flex justify-between items-center p-2.5 md:p-3 bg-slate-50 rounded-lg border border-slate-100">
-                                        <div className="text-slate-500 font-bold text-[10px] md:text-xs">დაზუსტებული სტუმრები</div>
+                                        <div className="text-slate-500 font-bold text-[10px] md:text-xs">სტუმრები</div>
                                         <span className="text-sm md:text-lg font-black text-indigo-600">{stats.confirmedCount}</span>
                                     </div>
 
@@ -534,7 +534,7 @@
                                                                 <div className="font-bold text-slate-800 text-[10px] md:text-sm">{item.name}</div>
                                                                 {item.portion && (
                                                                     <div className="text-[8px] md:text-[10px] text-amber-700 mt-0.5 font-bold bg-amber-50 inline-block px-1 md:px-1.5 py-0.5 rounded border border-amber-100">
-                                                                        პორცია: {item.portion}
+                                                                        მოთხოვნილი პორცია: {item.portion}
                                                                     </div>
                                                                 )}
                                                             </td>
@@ -604,11 +604,11 @@
                                 <div className="p-3 md:p-4 border-t border-slate-200 bg-white shrink-0">
                                     <form onSubmit={handleAddFood} className="flex flex-col sm:flex-row gap-2 md:gap-3 items-end">
                                         <div className="flex-1 w-full">
-                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">სახელი *</label>
+                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">სახელი</label>
                                             <input required type="text" placeholder="მაგ. ხაჭაპური" value={newFood.name} onChange={e => setNewFood({...newFood, name: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-md md:rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white" />
                                         </div>
                                         <div className="flex-1 w-full">
-                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">პორცია *</label>
+                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">პორცია</label>
                                             <input required type="text" placeholder="მაგ. 3 ცალი" value={newFood.portion} onChange={e => setNewFood({...newFood, portion: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-md md:rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white" />
                                         </div>
                                         <button type="submit" className="bg-amber-500 text-white rounded-md md:rounded-lg px-4 md:px-5 py-1.5 md:py-2 text-[10px] md:text-xs font-black hover:bg-amber-600 transition-all shadow-sm w-full sm:w-auto h-[32px] md:h-[34px]">
@@ -629,15 +629,15 @@
                                     <div className="w-10 h-10 md:w-14 md:h-14 bg-indigo-600 text-white rounded-lg md:rounded-xl flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-md shadow-indigo-600/30">
                                         <Icons.Lock />
                                     </div>
-                                    <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight mb-1">ავტორიზაცია</h2>
-                                    <p className="text-slate-500 font-medium text-[10px] md:text-xs mb-4 md:mb-6">მხოლოდ ადმინისტრატორისთვის</p>
+                                    <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight mb-1"></h2>
+                                    <p className="text-slate-500 font-medium text-[10px] md:text-xs mb-4 md:mb-6"></p>
                                     
                                     <form onSubmit={handleLogin}>
                                         <div className="mb-4 md:mb-6">
                                             {/* Disabled all copying methods for password input */}
                                             <input 
                                                 type="password" 
-                                                placeholder="პაროლი" 
+                                                placeholder="" 
                                                 value={passwordInput}
                                                 onChange={(e) => setPasswordInput(e.target.value)}
                                                 onCopy={e => e.preventDefault()}
