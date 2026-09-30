@@ -179,7 +179,6 @@
             const [showMenuModal, setShowMenuModal] = useState(false);
             const [confirmDialog, setConfirmDialog] = useState(null);
             
-            // State for modifying apartment cost individually
             const [editingGuestApt, setEditingGuestApt] = useState(null);
             const [customAptInput, setCustomAptInput] = useState('');
 
@@ -243,7 +242,6 @@
                 const confirmedGuests = guests.filter(g => g.status === 'დაზუსტებული');
                 const confirmedCount = confirmedGuests.length;
                 
-                // საკვების საერთო ჯამი
                 const foodTotal = menuItems.reduce((sum, item) => {
                     const price = Number(item.unitPrice) || 0;
                     const qty = Number(item.quantity) || 0;
@@ -253,13 +251,9 @@
                 const totalApt = Number(aptTotal) || 0;
                 const totalEventCost = totalApt + foodTotal;
                 
-                // რამდენს იხდის თითო ადამიანი იდეალურ ვარიანტში (სრული ჯამი / ადამიანებზე)
                 const perPersonFairShare = confirmedCount > 0 ? totalEventCost / confirmedCount : 0;
-                
-                // ნაგულისხმევი ბინის გადასახადი, თუ არავის აქვს ხელით შეცვლილი
                 const standardAptPerPerson = confirmedCount > 0 ? totalApt / confirmedCount : 0;
 
-                // ვითვლით იმათ ჯამს, ვისაც ბინაში ხელით შევუცვალეთ თანხა
                 let sumCustomApt = 0;
                 let customCount = 0;
                 confirmedGuests.forEach(g => {
@@ -269,15 +263,16 @@
                     }
                 });
 
-                // დარჩენილ ბინის თანხას ვანაწილებთ დარჩენილ მომხმარებლებზე
                 const regularCount = confirmedCount - customCount;
                 const remainingAptToSplit = totalApt - sumCustomApt;
                 const regularAptShare = regularCount > 0 ? remainingAptToSplit / regularCount : 0;
+                const foodPerPerson = confirmedCount > 0 ? foodTotal / confirmedCount : 0;
 
                 return { 
                     confirmedCount, 
                     foodTotal, 
                     totalApt,
+                    foodPerPerson,
                     perPersonFairShare,
                     standardAptPerPerson,
                     regularAptShare 
@@ -329,7 +324,6 @@
             const handleSaveCustomApt = () => {
                 if (!editingGuestApt) return;
                 
-                // თუ ცარიელ ველს შეინახავს, ინდივიდუალური თანხა წაიშლება და დაუბრუნდება ნაგულისხმევს
                 const valueToSave = customAptInput.trim() === '' ? null : Number(customAptInput);
                 
                 update(ref(db, `event/main/guests/${editingGuestApt.id}`), { customAptCost: valueToSave })
@@ -477,12 +471,8 @@
                                             let totalCost = 0;
 
                                             if (isConfirmed) {
-                                                // ბინის თანხა: თუ მითითებულია ინდივიდუალური იღებს მას, თუ არა - საერთო დარჩენილს წილად
                                                 aptCost = hasCustomApt ? Number(guest.customAptCost) : stats.regularAptShare;
-                                                
-                                                // საკვების თანხა: (ერთი ადამიანის იდეალური სრული ფასი) - (მის მიერ უკვე ბინაში გადახდილი თანხა)
                                                 foodCost = stats.perPersonFairShare - aptCost;
-                                                
                                                 totalCost = aptCost + foodCost;
                                             }
 
@@ -699,7 +689,7 @@
                                                                 <div className="font-bold text-slate-800 text-[10px] md:text-sm">{item.name}</div>
                                                                 {item.portion && (
                                                                     <div className="text-[8px] md:text-[10px] text-amber-700 mt-0.5 font-bold bg-amber-50 inline-block px-1 md:px-1.5 py-0.5 rounded border border-amber-100">
-                                                                        პორცია: {item.portion}
+                                                                        მოთხოვნილი პორცია: {item.portion}
                                                                     </div>
                                                                 )}
                                                             </td>
@@ -757,23 +747,49 @@
                                         </table>
                                     </div>
                                     
-                                    <div className="mt-2 md:mt-4 flex justify-end shrink-0">
-                                        <div className="bg-slate-800 text-white px-3 md:px-5 py-2 md:py-3 rounded-lg md:rounded-xl shadow flex items-center gap-2 md:gap-3">
-                                            <span className="text-slate-300 font-bold text-[8px] md:text-[10px] uppercase">საკვების ჯამი:</span>
-                                            <span className="text-sm md:text-lg font-black text-amber-400">{stats.foodTotal} ₾</span>
+                                    {/* Summary Block */}
+                                    {isAdmin ? (
+                                        <div className="mt-3 md:mt-4 grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3 shrink-0">
+                                            <div className="bg-slate-100 border border-slate-200 px-2 py-2 md:py-3 rounded-lg flex flex-col items-center justify-center text-center">
+                                                <span className="text-slate-500 font-bold text-[8px] md:text-[9px] uppercase mb-0.5">სტუმრები სულ</span>
+                                                <span className="text-sm md:text-base font-black text-slate-800">{stats.confirmedCount}</span>
+                                            </div>
+                                            <div className="bg-slate-100 border border-slate-200 px-2 py-2 md:py-3 rounded-lg flex flex-col items-center justify-center text-center">
+                                                <span className="text-slate-500 font-bold text-[8px] md:text-[9px] uppercase mb-0.5">ბინის გადასახადი</span>
+                                                <span className="text-sm md:text-base font-black text-slate-800">{stats.totalApt} ₾</span>
+                                            </div>
+                                            <div className="bg-slate-100 border border-slate-200 px-2 py-2 md:py-3 rounded-lg flex flex-col items-center justify-center text-center">
+                                                <span className="text-slate-500 font-bold text-[8px] md:text-[9px] uppercase mb-0.5">საკვების საშ. გადასახადი</span>
+                                                <span className="text-sm md:text-base font-black text-slate-800">{stats.foodPerPerson.toFixed(1)} ₾</span>
+                                            </div>
+                                            <div className="bg-indigo-50 border border-indigo-200 px-2 py-2 md:py-3 rounded-lg flex flex-col items-center justify-center text-center">
+                                                <span className="text-indigo-600 font-bold text-[8px] md:text-[9px] uppercase mb-0.5">1 სტუმარზე ჯამური (სავარაუდო)</span>
+                                                <span className="text-sm md:text-base font-black text-indigo-700">{stats.perPersonFairShare.toFixed(1)} ₾</span>
+                                            </div>
+                                            <div className="bg-slate-800 border border-slate-800 px-2 py-2 md:py-3 rounded-lg flex flex-col items-center justify-center text-center shadow col-span-2 md:col-span-1 print-total-box">
+                                                <span className="text-slate-300 font-bold text-[8px] md:text-[9px] uppercase mb-0.5">მთლიანი საკვების ჯამი</span>
+                                                <span className="text-sm md:text-lg font-black text-amber-400">{stats.foodTotal} ₾</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <div className="mt-2 md:mt-4 flex justify-end shrink-0">
+                                            <div className="bg-slate-800 text-white px-3 md:px-5 py-2 md:py-3 rounded-lg md:rounded-xl shadow flex items-center gap-2 md:gap-3">
+                                                <span className="text-slate-300 font-bold text-[8px] md:text-[10px] uppercase">საკვების ჯამი:</span>
+                                                <span className="text-sm md:text-lg font-black text-amber-400">{stats.foodTotal} ₾</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Menu Item Adding Form for EVERYONE (Users + Admins) */}
                                 <div className="p-3 md:p-4 border-t border-slate-200 bg-white shrink-0 no-print">
                                     <form onSubmit={handleAddFood} className="flex flex-col sm:flex-row gap-2 md:gap-3 items-end">
                                         <div className="flex-1 w-full">
-                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">სახელი *</label>
+                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">სახელი</label>
                                             <input required type="text" placeholder="მაგ. ხაჭაპური" value={newFood.name} onChange={e => setNewFood({...newFood, name: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-md md:rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white" />
                                         </div>
                                         <div className="flex-1 w-full">
-                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">პორცია *</label>
+                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">პორცია</label>
                                             <input required type="text" placeholder="მაგ. 3 ცალი" value={newFood.portion} onChange={e => setNewFood({...newFood, portion: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-md md:rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white" />
                                         </div>
                                         <button type="submit" className="bg-amber-500 text-white rounded-md md:rounded-lg px-4 md:px-5 py-1.5 md:py-2 text-[10px] md:text-xs font-black hover:bg-amber-600 transition-all shadow-sm w-full sm:w-auto h-[32px] md:h-[34px]">
@@ -794,15 +810,15 @@
                                     <div className="w-10 h-10 md:w-14 md:h-14 bg-indigo-600 text-white rounded-lg md:rounded-xl flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-md shadow-indigo-600/30">
                                         <Icons.Lock />
                                     </div>
-                                    <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight mb-1">ავტორიზაცია</h2>
-                                    <p className="text-slate-500 font-medium text-[10px] md:text-xs mb-4 md:mb-6">მხოლოდ ადმინისტრატორისთვის</p>
+                                    <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight mb-1"></h2>
+                                    <p className="text-slate-500 font-medium text-[10px] md:text-xs mb-4 md:mb-6"></p>
                                     
                                     <form onSubmit={handleLogin}>
                                         <div className="mb-4 md:mb-6">
                                             {/* Disabled all copying methods for password input */}
                                             <input 
                                                 type="password" 
-                                                placeholder="პაროლი" 
+                                                placeholder="" 
                                                 value={passwordInput}
                                                 onChange={(e) => setPasswordInput(e.target.value)}
                                                 onCopy={e => e.preventDefault()}
