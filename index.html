@@ -189,16 +189,45 @@
                 const confirmedGuests = guests.filter(g => g.status === 'დაზუსტებული');
                 const confirmedCount = confirmedGuests.length;
                 
+                // საკვების საერთო ჯამი
                 const foodTotal = menuItems.reduce((sum, item) => {
                     const price = Number(item.unitPrice) || 0;
                     const qty = Number(item.quantity) || 0;
                     return sum + (price * qty);
                 }, 0);
 
-                const aptPerPerson = confirmedCount > 0 ? (Number(aptTotal) || 0) / confirmedCount : 0;
-                const foodPerPerson = confirmedCount > 0 ? foodTotal / confirmedCount : 0;
+                const totalApt = Number(aptTotal) || 0;
+                const totalEventCost = totalApt + foodTotal;
+                
+                // რამდენს იხდის თითო ადამიანი იდეალურ ვარიანტში (სრული ჯამი / ადამიანებზე)
+                const perPersonFairShare = confirmedCount > 0 ? totalEventCost / confirmedCount : 0;
+                
+                // ნაგულისხმევი ბინის გადასახადი, თუ არავის აქვს ხელით შეცვლილი
+                const standardAptPerPerson = confirmedCount > 0 ? totalApt / confirmedCount : 0;
 
-                return { confirmedCount, foodTotal, aptPerPerson, foodPerPerson };
+                // ვითვლით იმათ ჯამს, ვისაც ბინაში ხელით შევუცვალეთ თანხა
+                let sumCustomApt = 0;
+                let customCount = 0;
+                confirmedGuests.forEach(g => {
+                    if (g.customAptCost !== undefined && g.customAptCost !== null && g.customAptCost !== '') {
+                        sumCustomApt += Number(g.customAptCost);
+                        customCount++;
+                    }
+                });
+
+                // დარჩენილ ბინის თანხას ვანაწილებთ დარჩენილ მომხმარებლებზე
+                const regularCount = confirmedCount - customCount;
+                const remainingAptToSplit = totalApt - sumCustomApt;
+                const regularAptShare = regularCount > 0 ? remainingAptToSplit / regularCount : 0;
+
+                return { 
+                    confirmedCount, 
+                    foodTotal, 
+                    totalApt,
+                    perPersonFairShare,
+                    standardAptPerPerson,
+                    regularAptShare 
+                };
             }, [guests, menuItems, aptTotal]);
 
             const handleLogin = (e) => {
@@ -246,7 +275,7 @@
             const handleSaveCustomApt = () => {
                 if (!editingGuestApt) return;
                 
-                // If input is empty, we remove the custom value to revert to default
+                // თუ ცარიელ ველს შეინახავს, ინდივიდუალური თანხა წაიშლება და დაუბრუნდება ნაგულისხმევს
                 const valueToSave = customAptInput.trim() === '' ? null : Number(customAptInput);
                 
                 update(ref(db, `event/main/guests/${editingGuestApt.id}`), { customAptCost: valueToSave })
@@ -387,23 +416,21 @@
                                             <tr><td colSpan="5" className="py-8 md:py-10 text-center text-slate-400 font-medium text-xs md:text-sm">სია ცარიელია</td></tr>
                                         ) : guests.map(guest => {
                                             const isConfirmed = guest.status === 'დაზუსტებული';
-                                            
-                                            // Base defaults
-                                            let aptCost = isConfirmed ? stats.aptPerPerson : 0;
-                                            let foodCost = isConfirmed ? stats.foodPerPerson : 0;
-                                            
-                                            // Custom logic for balanced food cost
                                             const hasCustomApt = guest.customAptCost !== undefined && guest.customAptCost !== null && guest.customAptCost !== '';
                                             
-                                            if (isConfirmed && hasCustomApt) {
-                                                const customApt = Number(guest.customAptCost);
-                                                const overpaidApt = customApt - stats.aptPerPerson; // How much MORE they paid for apt
-                                                
-                                                aptCost = customApt;
-                                                foodCost = stats.foodPerPerson - overpaidApt; // Reduce food bill by overpaid apt amount
-                                            }
+                                            let aptCost = 0;
+                                            let foodCost = 0;
+                                            let totalCost = 0;
 
-                                            const totalCost = aptCost + foodCost;
+                                            if (isConfirmed) {
+                                                // ბინის თანხა: თუ მითითებულია ინდივიდუალური იღებს მას, თუ არა - საერთო დარჩენილს წილად
+                                                aptCost = hasCustomApt ? Number(guest.customAptCost) : stats.regularAptShare;
+                                                
+                                                // საკვების თანხა: (ერთი ადამიანის იდეალური სრული ფასი) - (მის მიერ უკვე ბინაში გადახდილი თანხა)
+                                                foodCost = stats.perPersonFairShare - aptCost;
+                                                
+                                                totalCost = aptCost + foodCost;
+                                            }
 
                                             return (
                                                 <tr key={guest.id} className="hover:bg-slate-50 transition-colors group relative">
@@ -438,7 +465,7 @@
                                                                 setCustomAptInput(hasCustomApt ? guest.customAptCost : '');
                                                             }
                                                         }}
-                                                        title={isAdmin && isConfirmed ? "შეცვალე ინდივიდუალური ბინის თანხა" : ""}
+                                                        title={isAdmin && isConfirmed ? "დააჭირეთ ინდივიდუალური ბინის თანხის შესაცვლელად" : ""}
                                                     >
                                                         <span className={hasCustomApt ? "text-indigo-600 font-bold border-b border-dashed border-indigo-400 pb-0.5" : "text-slate-600"}>
                                                             {isConfirmed ? `${aptCost.toFixed(1)} ₾` : '0 ₾'}
@@ -543,7 +570,7 @@
                                         type="number" min="0"
                                         value={customAptInput}
                                         onChange={(e) => setCustomAptInput(e.target.value)}
-                                        placeholder={`ნაგულისხმევი: ${stats.aptPerPerson.toFixed(1)}`}
+                                        placeholder={`ნაგულისხმევი: ${stats.standardAptPerPerson.toFixed(1)}`}
                                         className="w-full text-center bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 md:py-3 text-sm md:text-lg font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                                         autoFocus
                                     />
