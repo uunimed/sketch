@@ -165,7 +165,8 @@
             Trash: () => <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>,
             Check: () => <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>,
             Warning: () => <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>,
-            Print: () => <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            Print: () => <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>,
+            Drag: () => <svg className="w-4 h-4 text-slate-400 cursor-move hover:text-slate-600 transition-colors mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h16M4 16h16"></path></svg>
         };
 
         const App = () => {
@@ -187,6 +188,8 @@
 
             const [newGuest, setNewGuest] = useState({ firstName: '', lastName: '', status: 'დასაზუსტებელი' });
             const [newFood, setNewFood] = useState({ name: '', portion: '' });
+            
+            const [draggedMenuIdx, setDraggedMenuIdx] = useState(null);
 
             const inputDebounceRef = useRef({});
 
@@ -216,7 +219,7 @@
                     
                     if (data) {
                         const fetchedGuests = data.guests ? Object.keys(data.guests).map(key => ({ id: key, ...data.guests[key] })) : [];
-                        const fetchedMenu = data.menuItems ? Object.keys(data.menuItems).map(key => ({ id: key, ...data.menuItems[key] })) : [];
+                        const fetchedMenu = data.menuItems ? Object.keys(data.menuItems).map(key => ({ id: key, ...data.menuItems[key] })).sort((a, b) => (a.order || 0) - (b.order || 0)) : [];
                         
                         setGuests(fetchedGuests);
                         setMenuItems(fetchedMenu);
@@ -343,7 +346,7 @@
                 requestConfirmation('კერძის დამატება', `ნამდვილად გსურთ დაამატოთ მენიუში: ${newFood.name}?`, () => {
                     const menuRef = ref(db, 'event/main/menuItems');
                     const newFoodRef = push(menuRef);
-                    const foodData = { name: newFood.name, portion: newFood.portion, unit: '', unitPrice: '', quantity: '' };
+                    const foodData = { name: newFood.name, portion: newFood.portion, unit: '', unitPrice: '', quantity: '', order: menuItems.length };
                     
                     set(newFoodRef, foodData).then(() => {
                         setNewFood({ name: '', portion: '' });
@@ -367,6 +370,23 @@
                 inputDebounceRef.current[debounceKey] = setTimeout(() => {
                     update(ref(db, `event/main/menuItems/${id}`), { [field]: value });
                 }, 600);
+            };
+
+            const handleMenuReorder = (dragIndex, dropIndex) => {
+                if (dragIndex === dropIndex) return;
+                
+                const newMenuItems = [...menuItems];
+                const draggedItem = newMenuItems.splice(dragIndex, 1)[0];
+                newMenuItems.splice(dropIndex, 0, draggedItem);
+                
+                const updates = {};
+                const updatedList = newMenuItems.map((item, idx) => {
+                    updates[`${item.id}/order`] = idx;
+                    return { ...item, order: idx };
+                });
+                
+                setMenuItems(updatedList);
+                update(ref(db, 'event/main/menuItems'), updates);
             };
 
             const handleAptTotalChange = (value) => {
@@ -666,6 +686,7 @@
                                         <table className="w-full text-left border-collapse min-w-[450px] md:min-w-[700px]">
                                             <thead className="bg-slate-100 text-slate-500 text-[8px] md:text-[10px] font-bold uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10">
                                                 <tr>
+                                                    {isAdmin && <th className="py-2 md:py-3 px-1 md:px-2 w-6 md:w-10 no-print"></th>}
                                                     <th className="py-2 md:py-3 px-2 md:px-3 w-1/4">საკვები</th>
                                                     <th className="py-2 md:py-3 px-2 md:px-3 text-center">ერთეული</th>
                                                     <th className="py-2 md:py-3 px-2 md:px-3 text-right">ერთ. ფასი</th>
@@ -676,15 +697,31 @@
                                             </thead>
                                             <tbody className="divide-y divide-slate-100">
                                                 {menuItems.length === 0 ? (
-                                                    <tr><td colSpan={isAdmin ? 6 : 5} className="py-6 md:py-8 text-center text-slate-400 font-bold text-xs md:text-sm">მენიუ ცარიელია</td></tr>
-                                                ) : menuItems.map(item => {
+                                                    <tr><td colSpan={isAdmin ? 7 : 5} className="py-6 md:py-8 text-center text-slate-400 font-bold text-xs md:text-sm">მენიუ ცარიელია</td></tr>
+                                                ) : menuItems.map((item, index) => {
                                                     const price = Number(item.unitPrice) || 0;
                                                     const qty = Number(item.quantity) || 0;
                                                     const itemTotal = price * qty;
                                                     const isMissingData = item.unitPrice === '' || item.unitPrice == null || item.quantity === '' || item.quantity == null;
 
                                                     return (
-                                                        <tr key={item.id} className="hover:bg-slate-50 transition-colors group">
+                                                        <tr 
+                                                            key={item.id} 
+                                                            className="hover:bg-slate-50 transition-colors group"
+                                                            draggable={isAdmin}
+                                                            onDragStart={() => setDraggedMenuIdx(index)}
+                                                            onDragOver={(e) => e.preventDefault()}
+                                                            onDrop={(e) => {
+                                                                e.preventDefault();
+                                                                if (draggedMenuIdx !== null) handleMenuReorder(draggedMenuIdx, index);
+                                                                setDraggedMenuIdx(null);
+                                                            }}
+                                                        >
+                                                            {isAdmin && (
+                                                                <td className="py-1.5 md:py-2.5 px-1 md:px-2 text-center align-middle cursor-move no-print">
+                                                                    <Icons.Drag />
+                                                                </td>
+                                                            )}
                                                             <td className="py-1.5 md:py-2.5 px-2 md:px-3">
                                                                 <div className="font-bold text-slate-800 text-[10px] md:text-sm">{item.name}</div>
                                                                 {item.portion && (
