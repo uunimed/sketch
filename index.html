@@ -526,7 +526,7 @@
                                                     const price = Number(item.unitPrice) || 0;
                                                     const qty = Number(item.quantity) || 0;
                                                     const itemTotal = price * qty;
-                                                    const isMissingData = price === 0 || qty === 0;
+const isMissingData = item.unitPrice === '' || item.unitPrice == null || item.quantity === '' || item.quantity == null;
 
                                                     return (
                                                         <tr key={item.id} className="hover:bg-slate-50 transition-colors group">
