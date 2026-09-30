@@ -124,6 +124,11 @@
             const [showLoginModal, setShowLoginModal] = useState(false);
             const [showMenuModal, setShowMenuModal] = useState(false);
             const [confirmDialog, setConfirmDialog] = useState(null);
+            
+            // State for modifying apartment cost individually
+            const [editingGuestApt, setEditingGuestApt] = useState(null);
+            const [customAptInput, setCustomAptInput] = useState('');
+
             const [passwordInput, setPasswordInput] = useState('');
             const [toasts, setToasts] = useState([]);
 
@@ -236,6 +241,19 @@
                     update(ref(db, `event/main/guests/${id}`), { status: newStatus })
                         .then(() => showToast('სტატუსი განახლდა'));
                 });
+            };
+
+            const handleSaveCustomApt = () => {
+                if (!editingGuestApt) return;
+                
+                // If input is empty, we remove the custom value to revert to default
+                const valueToSave = customAptInput.trim() === '' ? null : Number(customAptInput);
+                
+                update(ref(db, `event/main/guests/${editingGuestApt.id}`), { customAptCost: valueToSave })
+                    .then(() => {
+                        setEditingGuestApt(null);
+                        showToast(valueToSave === null ? 'დაბრუნდა ნაგულისხმევზე' : 'ინდივიდუალური თანხა შეინახა');
+                    });
             };
 
             const handleAddFood = (e) => {
@@ -369,8 +387,22 @@
                                             <tr><td colSpan="5" className="py-8 md:py-10 text-center text-slate-400 font-medium text-xs md:text-sm">სია ცარიელია</td></tr>
                                         ) : guests.map(guest => {
                                             const isConfirmed = guest.status === 'დაზუსტებული';
-                                            const aptCost = isConfirmed ? stats.aptPerPerson : 0;
-                                            const foodCost = isConfirmed ? stats.foodPerPerson : 0;
+                                            
+                                            // Base defaults
+                                            let aptCost = isConfirmed ? stats.aptPerPerson : 0;
+                                            let foodCost = isConfirmed ? stats.foodPerPerson : 0;
+                                            
+                                            // Custom logic for balanced food cost
+                                            const hasCustomApt = guest.customAptCost !== undefined && guest.customAptCost !== null && guest.customAptCost !== '';
+                                            
+                                            if (isConfirmed && hasCustomApt) {
+                                                const customApt = Number(guest.customAptCost);
+                                                const overpaidApt = customApt - stats.aptPerPerson; // How much MORE they paid for apt
+                                                
+                                                aptCost = customApt;
+                                                foodCost = stats.foodPerPerson - overpaidApt; // Reduce food bill by overpaid apt amount
+                                            }
+
                                             const totalCost = aptCost + foodCost;
 
                                             return (
@@ -398,11 +430,24 @@
                                                             </span>
                                                         )}
                                                     </td>
-                                                    <td className="py-1.5 px-1 md:py-2.5 md:px-3 text-right font-medium text-slate-600 truncate align-middle w-1/5 text-[10px] md:text-sm">
-                                                        {isConfirmed ? `${aptCost.toFixed(1)} ₾` : '0 ₾'}
+                                                    <td 
+                                                        className={`py-1.5 px-1 md:py-2.5 md:px-3 text-right font-medium truncate align-middle w-1/5 text-[10px] md:text-sm ${isAdmin && isConfirmed ? 'cursor-pointer hover:bg-indigo-50 transition-colors' : ''}`}
+                                                        onClick={() => {
+                                                            if (isAdmin && isConfirmed) {
+                                                                setEditingGuestApt({ id: guest.id, name: `${guest.firstName} ${guest.lastName}` });
+                                                                setCustomAptInput(hasCustomApt ? guest.customAptCost : '');
+                                                            }
+                                                        }}
+                                                        title={isAdmin && isConfirmed ? "შეცვალე ინდივიდუალური ბინის თანხა" : ""}
+                                                    >
+                                                        <span className={hasCustomApt ? "text-indigo-600 font-bold border-b border-dashed border-indigo-400 pb-0.5" : "text-slate-600"}>
+                                                            {isConfirmed ? `${aptCost.toFixed(1)} ₾` : '0 ₾'}
+                                                        </span>
                                                     </td>
                                                     <td className="py-1.5 px-1 md:py-2.5 md:px-3 text-right font-medium text-slate-600 truncate align-middle w-1/5 text-[10px] md:text-sm">
-                                                        {isConfirmed ? `${foodCost.toFixed(1)} ₾` : '0 ₾'}
+                                                        <span className={hasCustomApt ? "text-indigo-600" : ""}>
+                                                            {isConfirmed ? `${foodCost.toFixed(1)} ₾` : '0 ₾'}
+                                                        </span>
                                                     </td>
                                                     <td className="py-1.5 px-1 md:py-2.5 md:px-3 text-right bg-indigo-50/30 truncate align-middle relative w-1/5">
                                                         {isConfirmed ? (
@@ -433,7 +478,7 @@
                             
                             <div className="mt-2.5 md:mt-3 text-slate-500 font-bold text-[10px] md:text-xs bg-blue-50/60 p-2.5 md:p-3 rounded-lg border border-blue-100 flex items-start gap-1.5 md:gap-2">
                                 <div className="mt-0.5 md:mt-0 text-blue-400"><Icons.Warning /></div>
-                                <span>თანხები საშუალოა და საკვების რეალური თანხის შემდეგ შეიძლება შეიცვალოს</span>
+                                <span>ადმინისტრატორს შეუძლია დააჭიროს <b>ბინის</b> უჯრას ცხრილში, რათა მიუთითოს წინასწარ გადახდილი ინდივიდუალური თანხა. საკვების გადასახადი ავტომატურად დაბალანსდება.</span>
                             </div>
                         </div>
 
@@ -485,6 +530,37 @@
                         </div>
                     </main>
 
+                    {/* Guest Apt Custom Cost Modal */}
+                    {editingGuestApt && (
+                        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setEditingGuestApt(null)}></div>
+                            <div className="relative bg-white rounded-xl md:rounded-2xl shadow-xl w-full max-w-sm modal-enter p-5 md:p-6 text-center border border-slate-200">
+                                <h3 className="text-base md:text-lg font-black text-slate-800 mb-1.5">{editingGuestApt.name}</h3>
+                                <p className="text-slate-500 text-[10px] md:text-xs font-medium mb-4">შეიყვანეთ ბინის ინდივიდუალურად გადახდილი თანხა. ნაგულისხმევის დასაბრუნებლად წაშალეთ ციფრი.</p>
+                                
+                                <div className="mb-5 relative w-2/3 mx-auto">
+                                    <input 
+                                        type="number" min="0"
+                                        value={customAptInput}
+                                        onChange={(e) => setCustomAptInput(e.target.value)}
+                                        placeholder={`ნაგულისხმევი: ${stats.aptPerPerson.toFixed(1)}`}
+                                        className="w-full text-center bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 md:py-3 text-sm md:text-lg font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                                        autoFocus
+                                    />
+                                </div>
+
+                                <div className="flex gap-2 md:gap-3">
+                                    <button onClick={() => setEditingGuestApt(null)} className="flex-1 bg-slate-100 text-slate-600 font-bold rounded-md md:rounded-lg py-2 hover:bg-slate-200 transition-colors text-[10px] md:text-sm">
+                                        გაუქმება
+                                    </button>
+                                    <button onClick={handleSaveCustomApt} className="flex-1 bg-indigo-600 text-white font-bold rounded-md md:rounded-lg py-2 hover:bg-indigo-700 transition-colors text-[10px] md:text-sm">
+                                        შენახვა
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Stretched Menu Modal - Full stretch with spacing */}
                     {showMenuModal && (
                         <div className="fixed inset-0 z-50 pointer-events-none flex">
@@ -526,7 +602,7 @@
                                                     const price = Number(item.unitPrice) || 0;
                                                     const qty = Number(item.quantity) || 0;
                                                     const itemTotal = price * qty;
-const isMissingData = item.unitPrice === '' || item.unitPrice == null || item.quantity === '' || item.quantity == null;
+                                                    const isMissingData = item.unitPrice === '' || item.unitPrice == null || item.quantity === '' || item.quantity == null;
 
                                                     return (
                                                         <tr key={item.id} className="hover:bg-slate-50 transition-colors group">
@@ -534,7 +610,7 @@ const isMissingData = item.unitPrice === '' || item.unitPrice == null || item.qu
                                                                 <div className="font-bold text-slate-800 text-[10px] md:text-sm">{item.name}</div>
                                                                 {item.portion && (
                                                                     <div className="text-[8px] md:text-[10px] text-amber-700 mt-0.5 font-bold bg-amber-50 inline-block px-1 md:px-1.5 py-0.5 rounded border border-amber-100">
-                                                                        მოთხოვნილი პორცია: {item.portion}
+                                                                        პორცია: {item.portion}
                                                                     </div>
                                                                 )}
                                                             </td>
@@ -554,7 +630,7 @@ const isMissingData = item.unitPrice === '' || item.unitPrice == null || item.qu
                                                                         <span className="text-slate-400 text-[8px] md:text-xs">₾</span>
                                                                     </div>
                                                                 ) : (
-                                                                    <span className="text-[10px] md:text-xs font-bold text-slate-700">{item.unitPrice ? `${item.unitPrice} ₾` : '-'}</span>
+                                                                    <span className="text-[10px] md:text-xs font-bold text-slate-700">{item.unitPrice !== '' && item.unitPrice != null ? `${item.unitPrice} ₾` : '-'}</span>
                                                                 )}
                                                             </td>
                                                             
@@ -562,7 +638,7 @@ const isMissingData = item.unitPrice === '' || item.unitPrice == null || item.qu
                                                                 {isAdmin ? (
                                                                     <input type="number" min="0" placeholder="0" value={item.quantity} onChange={e => handleUpdateFood(item.id, 'quantity', e.target.value)} className="w-10 md:w-14 text-center bg-white border border-slate-200 rounded px-1 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-bold focus:ring-1 focus:ring-amber-500 outline-none mx-auto block" />
                                                                 ) : (
-                                                                    <span className="text-[10px] md:text-xs font-bold text-slate-700">{item.quantity || '-'}</span>
+                                                                    <span className="text-[10px] md:text-xs font-bold text-slate-700">{item.quantity !== '' && item.quantity != null ? item.quantity : '-'}</span>
                                                                 )}
                                                             </td>
 
@@ -604,11 +680,11 @@ const isMissingData = item.unitPrice === '' || item.unitPrice == null || item.qu
                                 <div className="p-3 md:p-4 border-t border-slate-200 bg-white shrink-0">
                                     <form onSubmit={handleAddFood} className="flex flex-col sm:flex-row gap-2 md:gap-3 items-end">
                                         <div className="flex-1 w-full">
-                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">სახელი</label>
+                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">სახელი *</label>
                                             <input required type="text" placeholder="მაგ. ხაჭაპური" value={newFood.name} onChange={e => setNewFood({...newFood, name: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-md md:rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white" />
                                         </div>
                                         <div className="flex-1 w-full">
-                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">პორცია</label>
+                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">პორცია *</label>
                                             <input required type="text" placeholder="მაგ. 3 ცალი" value={newFood.portion} onChange={e => setNewFood({...newFood, portion: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-md md:rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white" />
                                         </div>
                                         <button type="submit" className="bg-amber-500 text-white rounded-md md:rounded-lg px-4 md:px-5 py-1.5 md:py-2 text-[10px] md:text-xs font-black hover:bg-amber-600 transition-all shadow-sm w-full sm:w-auto h-[32px] md:h-[34px]">
@@ -629,15 +705,15 @@ const isMissingData = item.unitPrice === '' || item.unitPrice == null || item.qu
                                     <div className="w-10 h-10 md:w-14 md:h-14 bg-indigo-600 text-white rounded-lg md:rounded-xl flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-md shadow-indigo-600/30">
                                         <Icons.Lock />
                                     </div>
-                                    <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight mb-1"></h2>
-                                    <p className="text-slate-500 font-medium text-[10px] md:text-xs mb-4 md:mb-6"></p>
+                                    <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight mb-1">ავტორიზაცია</h2>
+                                    <p className="text-slate-500 font-medium text-[10px] md:text-xs mb-4 md:mb-6">მხოლოდ ადმინისტრატორისთვის</p>
                                     
                                     <form onSubmit={handleLogin}>
                                         <div className="mb-4 md:mb-6">
                                             {/* Disabled all copying methods for password input */}
                                             <input 
                                                 type="password" 
-                                                placeholder="" 
+                                                placeholder="პაროლი" 
                                                 value={passwordInput}
                                                 onChange={(e) => setPasswordInput(e.target.value)}
                                                 onCopy={e => e.preventDefault()}
