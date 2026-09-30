@@ -66,6 +66,14 @@
         .spinner {
             animation: spinSlow 1s linear infinite;
         }
+
+        /* Disable Selection for Password */
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
     </style>
 </head>
 <body>
@@ -93,7 +101,7 @@
 
         // UI Icons
         const Icons = {
-            Event: ({ className }) => <svg className={className || "w-6 h-6"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>,
+            Event: ({ className }) => <svg className={className || "w-6 h-6"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11a2 2 0 100 4 2 2 0 000-4z"></path></svg>,
             Refresh: ({ className }) => <svg className={className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>,
             Settings: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>,
             Lock: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>,
@@ -132,6 +140,16 @@
 
             const requestConfirmation = (title, message, onConfirm) => {
                 setConfirmDialog({ title, message, onConfirm });
+            };
+
+            const handleLocalRefresh = () => {
+                setIsLoadingData(true);
+                // ვინაიდან მონაცემები Realtime Database-დან ისედაც რეალურ დროში მოდის,
+                // ეს ანიმაცია ვიზუალურად არწმუნებს მომხმარებელს, რომ ყველაფერი განახლდა
+                setTimeout(() => {
+                    setIsLoadingData(false);
+                    showToast('მონაცემები განახლებულია', 'success');
+                }, 600);
             };
 
             useEffect(() => {
@@ -271,14 +289,19 @@
             return (
                 <div className="min-h-screen flex flex-col bg-slate-50 relative">
                     
-                    {/* Header Section (Moved Title to top left, Admin to top right) */}
+                    {/* Header Section */}
                     <div className="w-full flex justify-between items-center px-4 py-4 md:px-8 bg-white border-b border-slate-200 shadow-sm z-10">
-                        <h1 className="text-lg md:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                        {/* On click triggers Local Refresh */}
+                        <div 
+                            onClick={handleLocalRefresh}
+                            className="text-lg md:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity select-none"
+                            title="მონაცემების განახლება"
+                        >
                             <div className="text-indigo-600 bg-indigo-50 p-1.5 rounded-lg border border-indigo-100 shadow-sm">
                                 <Icons.Event />
                             </div>
                             ღონისძიების მართვა
-                        </h1>
+                        </div>
                         
                         <div>
                             {isAdmin ? (
@@ -297,13 +320,11 @@
                         </div>
                     </div>
 
-                    {/* Main Content Area: Reduced Paddings, lifted up */}
                     <main className="flex-grow w-full px-4 py-6 md:px-8 md:py-8 flex flex-col lg:flex-row gap-6">
                         
                         {/* LEFT COLUMN */}
                         <div className="w-full lg:w-2/3 lg:pr-6 lg:border-r border-slate-200 flex flex-col">
                             
-                            {/* Add Guest Form (ONLY ADMIN CAN ADD GUESTS) */}
                             {isAdmin && (
                                 <form onSubmit={handleAddGuest} className="mb-5 p-4 bg-white border border-indigo-100 rounded-xl shadow-sm relative overflow-hidden shrink-0">
                                     <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
@@ -385,13 +406,14 @@
                                                     <td className="py-2.5 px-3 text-right font-medium text-slate-600 truncate align-middle w-1/5">
                                                         {isConfirmed ? `${foodCost.toFixed(1)} ₾` : '0 ₾'}
                                                     </td>
+                                                    {/* Changed text-center to text-right for Total column block */}
                                                     <td className="py-2.5 px-3 text-right bg-indigo-50/30 truncate align-middle relative w-1/5">
                                                         {isConfirmed ? (
-                                                            <span className="font-bold text-indigo-700 bg-white border border-indigo-100 rounded px-2 py-1 shadow-sm inline-block w-full text-center relative z-0">
+                                                            <span className="font-bold text-indigo-700 bg-white border border-indigo-100 rounded px-2 py-1 shadow-sm block w-full text-right relative z-0">
                                                                 {totalCost.toFixed(1)} ₾
                                                             </span>
                                                         ) : (
-                                                            <span className="font-bold text-slate-400 bg-white border border-slate-200 rounded px-2 py-1 shadow-sm inline-block w-full text-center relative z-0">
+                                                            <span className="font-bold text-slate-400 bg-white border border-slate-200 rounded px-2 py-1 shadow-sm block w-full text-right relative z-0">
                                                                 0 ₾
                                                             </span>
                                                         )}
@@ -466,11 +488,17 @@
                         </div>
                     </main>
 
-                    {/* Menu Modal */}
+                    {/* Stretched Menu Modal - exactly 1cm from every corner */}
                     {showMenuModal && (
-                        <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center p-4">
+                        <div className="fixed inset-0 z-50 pointer-events-none">
+                            {/* Backdrop */}
                             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm pointer-events-auto" onClick={() => setShowMenuModal(false)}></div>
-                            <div className="relative bg-white rounded-2xl shadow-2xl modal-enter flex flex-col overflow-hidden pointer-events-auto w-full max-w-4xl max-h-[90vh]">
+                            
+                            {/* Inner Modal container stretched with 1cm offset */}
+                            <div 
+                                className="absolute bg-white rounded-2xl shadow-2xl modal-enter flex flex-col overflow-hidden pointer-events-auto"
+                                style={{ top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' }}
+                            >
                                 
                                 <div className="px-5 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
                                     <div className="flex items-center gap-2.5">
@@ -490,22 +518,16 @@
                                             <thead className="bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider border-b border-slate-200">
                                                 <tr>
                                                     <th className="py-3 px-3 w-1/4">საკვები</th>
-                                                    {isAdmin ? (
-                                                        <>
-                                                            <th className="py-3 px-3">ერთეული</th>
-                                                            <th className="py-3 px-3 text-right">ერთ. ფასი</th>
-                                                            <th className="py-3 px-3 text-center">რაოდენობა</th>
-                                                            <th className="py-3 px-3 text-right bg-amber-50/50 text-amber-700">თანხა ამ საკვებზე</th>
-                                                            <th className="py-3 px-2 w-10"></th>
-                                                        </>
-                                                    ) : (
-                                                        <th className="py-3 px-3 text-right bg-amber-50/50 text-amber-700">სტატუსი / ჯამი</th>
-                                                    )}
+                                                    <th className="py-3 px-3 text-center">ერთეული</th>
+                                                    <th className="py-3 px-3 text-right">ერთ. ფასი</th>
+                                                    <th className="py-3 px-3 text-center">რაოდენობა</th>
+                                                    <th className="py-3 px-3 text-right bg-amber-50/50 text-amber-700">თანხა ამ საკვებზე</th>
+                                                    {isAdmin && <th className="py-3 px-2 w-10"></th>}
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 text-sm">
                                                 {menuItems.length === 0 ? (
-                                                    <tr><td colSpan={isAdmin ? 6 : 2} className="py-8 text-center text-slate-400 font-bold text-sm">მენიუ ცარიელია</td></tr>
+                                                    <tr><td colSpan={isAdmin ? 6 : 5} className="py-8 text-center text-slate-400 font-bold text-sm">მენიუ ცარიელია</td></tr>
                                                 ) : menuItems.map(item => {
                                                     const price = Number(item.unitPrice) || 0;
                                                     const qty = Number(item.quantity) || 0;
@@ -523,42 +545,50 @@
                                                                 )}
                                                             </td>
                                                             
-                                                            {isAdmin ? (
-                                                                <>
-                                                                    <td className="py-2.5 px-3">
-                                                                        <input type="text" placeholder="მაგ. ცალი" value={item.unit} onChange={e => handleUpdateFood(item.id, 'unit', e.target.value)} className="w-16 bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-amber-500 outline-none" />
-                                                                    </td>
-                                                                    <td className="py-2.5 px-3 text-right">
-                                                                        <div className="flex justify-end items-center gap-1">
-                                                                            <input type="number" min="0" placeholder="0" value={item.unitPrice} onChange={e => handleUpdateFood(item.id, 'unitPrice', e.target.value)} className="w-16 text-right bg-white border border-slate-200 rounded px-2 py-1 text-xs font-bold focus:ring-1 focus:ring-amber-500 outline-none" />
-                                                                            <span className="text-slate-400 text-xs">₾</span>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="py-2.5 px-3 text-center">
-                                                                        <input type="number" min="0" placeholder="0" value={item.quantity} onChange={e => handleUpdateFood(item.id, 'quantity', e.target.value)} className="w-14 text-center bg-white border border-slate-200 rounded px-2 py-1 text-xs font-bold focus:ring-1 focus:ring-amber-500 outline-none mx-auto block" />
-                                                                    </td>
-                                                                    <td className="py-2.5 px-3 text-right bg-amber-50/20">
-                                                                        <span className="text-sm font-black text-slate-800 inline-block min-w-[60px] text-right">
-                                                                            {itemTotal} ₾
-                                                                        </span>
-                                                                    </td>
-                                                                    <td className="py-2.5 px-2 text-center">
-                                                                        <button onClick={() => handleDeleteFood(item.id)} className="text-slate-300 hover:text-rose-500 p-1 rounded hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100">
-                                                                            <Icons.Trash />
-                                                                        </button>
-                                                                    </td>
-                                                                </>
-                                                            ) : (
-                                                                <td className="py-2.5 px-3 text-right bg-amber-50/20">
-                                                                    {isMissingData ? (
-                                                                        <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded border border-amber-200">
-                                                                            ფასს დაამატებს ადმინი
-                                                                        </span>
-                                                                    ) : (
-                                                                        <span className="text-sm font-black text-slate-800 inline-block min-w-[60px] text-right">
-                                                                            {itemTotal} ₾
-                                                                        </span>
-                                                                    )}
+                                                            <td className="py-2.5 px-3 text-center">
+                                                                {isAdmin ? (
+                                                                    <input type="text" placeholder="მაგ. ცალი" value={item.unit} onChange={e => handleUpdateFood(item.id, 'unit', e.target.value)} className="w-16 bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-amber-500 outline-none" />
+                                                                ) : (
+                                                                    <span className="text-xs font-medium text-slate-600">{item.unit || '-'}</span>
+                                                                )}
+                                                            </td>
+
+                                                            <td className="py-2.5 px-3 text-right">
+                                                                {isAdmin ? (
+                                                                    <div className="flex justify-end items-center gap-1">
+                                                                        <input type="number" min="0" placeholder="0" value={item.unitPrice} onChange={e => handleUpdateFood(item.id, 'unitPrice', e.target.value)} className="w-16 text-right bg-white border border-slate-200 rounded px-2 py-1 text-xs font-bold focus:ring-1 focus:ring-amber-500 outline-none" />
+                                                                        <span className="text-slate-400 text-xs">₾</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-xs font-bold text-slate-700">{item.unitPrice ? `${item.unitPrice} ₾` : '-'}</span>
+                                                                )}
+                                                            </td>
+                                                            
+                                                            <td className="py-2.5 px-3 text-center">
+                                                                {isAdmin ? (
+                                                                    <input type="number" min="0" placeholder="0" value={item.quantity} onChange={e => handleUpdateFood(item.id, 'quantity', e.target.value)} className="w-14 text-center bg-white border border-slate-200 rounded px-2 py-1 text-xs font-bold focus:ring-1 focus:ring-amber-500 outline-none mx-auto block" />
+                                                                ) : (
+                                                                    <span className="text-xs font-bold text-slate-700">{item.quantity || '-'}</span>
+                                                                )}
+                                                            </td>
+
+                                                            <td className="py-2.5 px-3 text-right bg-amber-50/20">
+                                                                {isMissingData ? (
+                                                                    <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded border border-amber-200">
+                                                                        ფასს დაამატებს ადმინი
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-sm font-black text-slate-800 block min-w-[60px] text-right">
+                                                                        {itemTotal} ₾
+                                                                    </span>
+                                                                )}
+                                                            </td>
+
+                                                            {isAdmin && (
+                                                                <td className="py-2.5 px-2 text-center">
+                                                                    <button onClick={() => handleDeleteFood(item.id)} className="text-slate-300 hover:text-rose-500 p-1 rounded hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100">
+                                                                        <Icons.Trash />
+                                                                    </button>
                                                                 </td>
                                                             )}
                                                         </tr>
@@ -597,7 +627,7 @@
                         </div>
                     )}
 
-                    {/* Login Modal (Slightly reduced padding) */}
+                    {/* Login Modal */}
                     {showLoginModal && (
                         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
                             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowLoginModal(false)}></div>
@@ -611,13 +641,19 @@
                                     
                                     <form onSubmit={handleLogin}>
                                         <div className="mb-6">
+                                            {/* Disabled all copying methods for password input */}
                                             <input 
                                                 type="password" 
                                                 placeholder="პაროლი" 
                                                 value={passwordInput}
                                                 onChange={(e) => setPasswordInput(e.target.value)}
-                                                autoComplete="off"
-                                                className="w-full text-center text-2xl tracking-[0.3em] font-black bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all text-slate-800 placeholder:tracking-normal placeholder:text-sm placeholder:-translate-y-1"
+                                                onCopy={e => e.preventDefault()}
+                                                onPaste={e => e.preventDefault()}
+                                                onCut={e => e.preventDefault()}
+                                                onDragStart={e => e.preventDefault()}
+                                                onSelect={e => e.preventDefault()}
+                                                autoComplete="new-password"
+                                                className="w-full text-center text-2xl tracking-[0.3em] font-black bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all text-slate-800 placeholder:tracking-normal placeholder:text-sm placeholder:-translate-y-1 no-select"
                                                 autoFocus
                                             />
                                         </div>
