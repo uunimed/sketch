@@ -174,6 +174,16 @@
             'ბოსტნეული': 'bg-emerald-100 hover:bg-emerald-200 border-l-4 border-emerald-500'
         };
 
+        // მკვეთრი ფერები მაღაზიებისთვის
+        const SHOP_COLORS = [
+            'bg-violet-100 hover:bg-violet-200 border-l-4 border-violet-500',
+            'bg-orange-100 hover:bg-orange-200 border-l-4 border-orange-500',
+            'bg-teal-100 hover:bg-teal-200 border-l-4 border-teal-500',
+            'bg-pink-100 hover:bg-pink-200 border-l-4 border-pink-500',
+            'bg-indigo-100 hover:bg-indigo-200 border-l-4 border-indigo-500',
+            'bg-lime-100 hover:bg-lime-200 border-l-4 border-lime-500'
+        ];
+
         // UI Icons
         const Icons = {
             Event: ({ className }) => <svg className={className || "w-5 h-5 md:w-6 md:h-6"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11a2 2 0 100 4 2 2 0 000-4z"></path></svg>,
@@ -204,6 +214,8 @@
             const [showMenuModal, setShowMenuModal] = useState(false);
             const [confirmDialog, setConfirmDialog] = useState(null);
             
+            const [sortByShopActive, setSortByShopActive] = useState(false);
+            
             const [editingGuestApt, setEditingGuestApt] = useState(null);
             const [customAptInput, setCustomAptInput] = useState('');
 
@@ -211,7 +223,7 @@
             const [toasts, setToasts] = useState([]);
 
             const [newGuest, setNewGuest] = useState({ firstName: '', lastName: '', status: 'დასაზუსტებელი' });
-            const [newFood, setNewFood] = useState({ name: '', category: 'საკვები', portion: '' });
+            const [newFood, setNewFood] = useState({ name: '', category: 'საკვები', portion: '', shop: '' });
             
             const [draggedItem, setDraggedItem] = useState(null);
             const [draggedCategory, setDraggedCategory] = useState(null);
@@ -268,20 +280,26 @@
                 return () => unsubscribe();
             }, [showToast]);
 
-            // დინამიური სია კატეგორიებისა და პროდუქტების დალაგებით
             const sortedGroupedMenu = useMemo(() => {
-                const result = [];
-                // ვიღებთ არსებულ კატეგორიებს ბაზიდან ან default სიიდან
-                const activeCategories = [...new Set([...categoryOrder, ...menuItems.map(i => i.category || 'საკვები')])];
-                
-                activeCategories.forEach(cat => {
-                    const itemsInCat = menuItems
-                        .filter(item => (item.category || 'საკვები') === cat)
-                        .sort((a, b) => (a.order || 0) - (b.order || 0));
-                    result.push(...itemsInCat);
-                });
-                return result;
-            }, [menuItems, categoryOrder]);
+                if (sortByShopActive) {
+                    return [...menuItems].sort((a, b) => {
+                        const shopA = (a.shop || 'სხვა').trim().toLowerCase();
+                        const shopB = (b.shop || 'სხვა').trim().toLowerCase();
+                        return shopA.localeCompare(shopB);
+                    });
+                } else {
+                    const result = [];
+                    const activeCategories = [...new Set([...categoryOrder, ...menuItems.map(i => i.category || 'საკვები')])];
+                    
+                    activeCategories.forEach(cat => {
+                        const itemsInCat = menuItems
+                            .filter(item => (item.category || 'საკვები') === cat)
+                            .sort((a, b) => (a.order || 0) - (b.order || 0));
+                        result.push(...itemsInCat);
+                    });
+                    return result;
+                }
+            }, [menuItems, categoryOrder, sortByShopActive]);
 
             const stats = useMemo(() => {
                 const confirmedGuests = guests.filter(g => g.status === 'დაზუსტებული');
@@ -396,6 +414,7 @@
                         name: newFood.name, 
                         category: newFood.category,
                         portion: newFood.portion, 
+                        shop: newFood.shop || '',
                         unit: '', 
                         unitPrice: '', 
                         quantity: '', 
@@ -403,7 +422,7 @@
                     };
                     
                     set(newFoodRef, foodData).then(() => {
-                        setNewFood({ name: '', category: 'საკვები', portion: '' });
+                        setNewFood({ name: '', category: 'საკვები', portion: '', shop: '' });
                         showToast('კერძი დაემატა მენიუში');
                     });
                 });
@@ -426,8 +445,8 @@
                 }, 600);
             };
 
-            // პროდუქტის გადაადგილება მხოლოდ საკუთარი ტიპის შიგნით
             const handleMenuReorder = (dragItem, dropItem) => {
+                if (sortByShopActive) return;
                 if (!dragItem || !dropItem || dragItem.id === dropItem.id) return;
                 
                 const dragCat = dragItem.category || 'საკვები';
@@ -464,8 +483,8 @@
                 update(ref(db, 'event/main/menuItems'), updates).catch(() => showToast('შეცდომა განახლებისას', 'error'));
             };
 
-            // მთლიანი ტიპის (კატეგორიის) გადაადგილება
             const handleCategoryReorder = (dragCat, dropCat) => {
+                if (sortByShopActive) return;
                 if (!dragCat || !dropCat || dragCat === dropCat) return;
 
                 const activeCategories = [...new Set([...categoryOrder, ...menuItems.map(i => i.category || 'საკვები')])];
@@ -518,8 +537,6 @@
                             ) : (
                                 <button onClick={() => setShowLoginModal(true)} className="flex items-center gap-1.5 md:gap-2 px-2 py-1.5 md:px-3 md:py-2 bg-slate-900 text-white hover:bg-slate-800 rounded-md md:rounded-lg text-[10px] md:text-xs font-bold transition-all shadow-md">
                                     <Icons.Settings />
-                                    <span className="hidden sm:inline"></span>
-                                    <span className="sm:hidden"></span>
                                 </button>
                             )}
                         </div>
@@ -763,6 +780,25 @@
                                     </div>
                                     <div className="flex items-center gap-2">
                                         {isAdmin && (
+                                            <div className="flex items-center gap-1.5 no-print">
+                                                {!sortByShopActive ? (
+                                                    <button 
+                                                        onClick={() => setSortByShopActive(true)}
+                                                        className="px-2.5 py-1.5 bg-violet-600 text-white hover:bg-violet-700 rounded-md text-[10px] md:text-xs font-bold transition-all shadow-sm"
+                                                    >
+                                                        მაღაზიის მიხედვით სორტირება
+                                                    </button>
+                                                ) : (
+                                                    <button 
+                                                        onClick={() => setSortByShopActive(false)}
+                                                        className="px-2.5 py-1.5 bg-rose-600 text-white hover:bg-rose-700 rounded-md text-[10px] md:text-xs font-bold transition-all shadow-sm"
+                                                    >
+                                                        ფილტრის გაუქმება
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                        {isAdmin && (
                                             <button onClick={() => window.print()} className="no-print flex items-center gap-1.5 md:gap-2 px-2 py-1.5 md:px-3 md:py-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 rounded-md transition-colors mr-1">
                                                 <Icons.Print />
                                                 <span className="text-[10px] md:text-xs font-bold uppercase tracking-wide">ბეჭდვა</span>
@@ -776,32 +812,40 @@
                                 
                                 <div className="flex-grow overflow-y-auto p-2 md:p-6 bg-slate-50/50 flex flex-col">
                                     <div className="bg-white border border-slate-200 rounded-lg md:rounded-xl shadow-sm overflow-x-auto flex-grow">
-                                        <table className="w-full text-left border-collapse min-w-[500px] md:min-w-[750px]">
+                                        <table className="w-full text-left border-collapse min-w-[500px] md:min-w-[850px]">
                                             <thead className="bg-slate-100 text-slate-500 text-[8px] md:text-[10px] font-bold uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10">
                                                 <tr>
-                                                    {isAdmin && <th className="py-2 md:py-3 px-1 w-6 md:w-8 text-center no-print" title="ტიპის გადაადგილება"></th>}
-                                                    {isAdmin && <th className="py-2 md:py-3 px-1 w-6 md:w-8 text-center no-print" title="პროდუქტის გადაადგილება"></th>}
+                                                    {isAdmin && !sortByShopActive && <th className="py-2 md:py-3 px-1 w-6 md:w-8 text-center no-print" title="ტიპის გადაადგილება"></th>}
+                                                    {isAdmin && !sortByShopActive && <th className="py-2 md:py-3 px-1 w-6 md:w-8 text-center no-print" title="პროდუქტის გადაადგილება"></th>}
                                                     <th className="py-2 md:py-3 px-2 md:px-3 w-1/4">საკვები</th>
                                                     {isAdmin && <th className="py-2 md:py-3 px-2 md:px-3 no-print w-32">ტიპი (ადმინ)</th>}
                                                     <th className="py-2 md:py-3 px-2 md:px-3 text-center">ერთეული</th>
                                                     <th className="py-2 md:py-3 px-2 md:px-3 text-right">ერთ. ფასი</th>
                                                     <th className="py-2 md:py-3 px-2 md:px-3 text-center">რაოდენობა</th>
                                                     <th className="py-2 md:py-3 px-2 md:px-3 text-right text-amber-700">თანხა ამ საკვებზე</th>
+                                                    {/* მაღაზია გადატანილია ბოლოში */}
+                                                    <th className="py-2 md:py-3 px-2 md:px-3 w-28">მაღაზია</th>
                                                     {isAdmin && <th className="py-2 md:py-3 px-1 md:px-2 w-6 md:w-10 no-print"></th>}
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-200">
                                                 {sortedGroupedMenu.length === 0 ? (
-                                                    <tr><td colSpan={isAdmin ? 9 : 5} className="py-6 md:py-8 text-center text-slate-400 font-bold text-xs md:text-sm">მენიუ ცარიელია</td></tr>
-                                                ) : sortedGroupedMenu.map((item) => {
+                                                    <tr><td colSpan={isAdmin ? 10 : 6} className="py-6 md:py-8 text-center text-slate-400 font-bold text-xs md:text-sm">მენიუ ცარიელია</td></tr>
+                                                ) : sortedGroupedMenu.map((item, index) => {
                                                     const price = Number(item.unitPrice) || 0;
                                                     const qty = Number(item.quantity) || 0;
                                                     const itemTotal = price * qty;
                                                     const isMissingData = item.unitPrice === '' || item.unitPrice == null || item.quantity === '' || item.quantity == null;
                                                     const currentCat = item.category || 'საკვები';
-                                                    const rowBgClass = CATEGORY_COLORS[currentCat] || 'bg-slate-100';
+                                                    
+                                                    let rowBgClass = CATEGORY_COLORS[currentCat] || 'bg-slate-100';
+                                                    if (sortByShopActive) {
+                                                        const shopName = (item.shop || 'სხვა').trim();
+                                                        let colorIdx = 0;
+                                                        for (let i = 0; i < shopName.length; i++) colorIdx += shopName.charCodeAt(i);
+                                                        rowBgClass = SHOP_COLORS[colorIdx % SHOP_COLORS.length];
+                                                    }
 
-                                                    // ვამოწმებთ არის თუ არა ეს ნივთი თავის კატეგორიაში პირველი, რომ გამოვუჩინოთ ტიპის გადაადგილების ნიშანი
                                                     const catItems = sortedGroupedMenu.filter(i => (i.category || 'საკვები') === currentCat);
                                                     const isFirstInCategory = catItems[0]?.id === item.id;
 
@@ -809,17 +853,16 @@
                                                         <tr 
                                                             key={item.id} 
                                                             className={`transition-colors group ${rowBgClass}`}
-                                                            draggable={isAdmin}
+                                                            draggable={isAdmin && !sortByShopActive}
                                                             onDragStart={() => setDraggedItem(item)}
                                                             onDragOver={(e) => e.preventDefault()}
                                                             onDrop={(e) => {
                                                                 e.preventDefault();
-                                                                if (draggedItem !== null) handleMenuReorder(draggedItem, item);
+                                                                if (!sortByShopActive && draggedItem !== null) handleMenuReorder(draggedItem, item);
                                                                 setDraggedItem(null);
                                                             }}
                                                         >
-                                                            {/* მთლიანი ტიპის (კატეგორიის) გადაადგილების ნიშანი */}
-                                                            {isAdmin && (
+                                                            {isAdmin && !sortByShopActive && (
                                                                 <td className="py-1.5 md:py-2.5 px-0.5 text-center align-middle no-print">
                                                                     {isFirstInCategory ? (
                                                                         <div 
@@ -846,8 +889,7 @@
                                                                 </td>
                                                             )}
 
-                                                            {/* კონკრეტული პროდუქტის გადაადგილების ნიშანი */}
-                                                            {isAdmin && (
+                                                            {isAdmin && !sortByShopActive && (
                                                                 <td className="py-1.5 md:py-2.5 px-0.5 text-center align-middle no-print">
                                                                     <div title="პროდუქტის გადაადგილება" className="cursor-move inline-block">
                                                                         <Icons.Drag />
@@ -864,7 +906,6 @@
                                                                 )}
                                                             </td>
 
-                                                            {/* ადმინისტრატორისთვის ცხრილში ტიპის შეცვლის სვეტი (მომხმარებელს და ბეჭდვაზე არ უჩანს) */}
                                                             {isAdmin && (
                                                                 <td className="py-1.5 md:py-2.5 px-2 md:px-3 no-print">
                                                                     <select 
@@ -916,6 +957,21 @@
                                                                 )}
                                                             </td>
 
+                                                            {/* მაღაზიის სვეტი გადატანილია თანხის მერე */}
+                                                            <td className="py-1.5 md:py-2.5 px-2 md:px-3">
+                                                                {isAdmin ? (
+                                                                    <input 
+                                                                        type="text" 
+                                                                        placeholder="მაღაზია" 
+                                                                        value={item.shop || ''} 
+                                                                        onChange={e => handleUpdateFood(item.id, 'shop', e.target.value)} 
+                                                                        className="w-full bg-white border border-slate-300 rounded px-1.5 py-1 text-[10px] md:text-xs font-bold text-slate-800 outline-none focus:ring-1 focus:ring-amber-500 shadow-sm" 
+                                                                    />
+                                                                ) : (
+                                                                    <span className="text-[10px] md:text-xs font-bold text-slate-700">{item.shop || '-'}</span>
+                                                                )}
+                                                            </td>
+
                                                             {isAdmin && (
                                                                 <td className="py-1.5 md:py-2.5 px-1 md:px-2 text-center no-print">
                                                                     <button onClick={() => handleDeleteFood(item.id)} className="text-slate-500 hover:text-rose-600 p-0.5 md:p-1 rounded hover:bg-rose-200 transition-all opacity-0 group-hover:opacity-100">
@@ -964,24 +1020,28 @@
                                     )}
                                 </div>
 
-                                {/* Menu Item Adding Form for EVERYONE (Users + Admins) */}
+                                {/* Menu Item Adding Form */}
                                 <div className="p-3 md:p-4 border-t border-slate-200 bg-white shrink-0 no-print">
-                                    <form onSubmit={handleAddFood} className="flex flex-col sm:flex-row gap-2 md:gap-3 items-end">
-                                        <div className="flex-1 w-full">
+                                    <form onSubmit={handleAddFood} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 md:gap-3 items-end">
+                                        <div>
                                             <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">სახელი</label>
                                             <input required type="text" placeholder="მაგ. ხაჭაპური" value={newFood.name} onChange={e => setNewFood({...newFood, name: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-md md:rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white" />
                                         </div>
-                                        <div className="flex-1 w-full">
+                                        <div>
+                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">მაღაზია</label>
+                                            <input type="text" placeholder="მაგ. ნიკორა" value={newFood.shop} onChange={e => setNewFood({...newFood, shop: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-md md:rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white" />
+                                        </div>
+                                        <div>
                                             <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">ტიპი</label>
                                             <select value={newFood.category} onChange={e => setNewFood({...newFood, category: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-md md:rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white cursor-pointer text-slate-700">
                                                 {DEFAULT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                                             </select>
                                         </div>
-                                        <div className="flex-1 w-full">
+                                        <div>
                                             <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">პორცია</label>
                                             <input required type="text" placeholder="მაგ. 3 ცალი" value={newFood.portion} onChange={e => setNewFood({...newFood, portion: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-md md:rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white" />
                                         </div>
-                                        <button type="submit" className="bg-amber-500 text-white rounded-md md:rounded-lg px-4 md:px-5 py-1.5 md:py-2 text-[10px] md:text-xs font-black hover:bg-amber-600 transition-all shadow-sm w-full sm:w-auto h-[32px] md:h-[34px]">
+                                        <button type="submit" className="bg-amber-500 text-white rounded-md md:rounded-lg px-4 md:px-5 py-1.5 md:py-2 text-[10px] md:text-xs font-black hover:bg-amber-600 transition-all shadow-sm w-full h-[32px] md:h-[34px]">
                                             დამატება
                                         </button>
                                     </form>
@@ -999,15 +1059,10 @@
                                     <div className="w-10 h-10 md:w-14 md:h-14 bg-indigo-600 text-white rounded-lg md:rounded-xl flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-md shadow-indigo-600/30">
                                         <Icons.Lock />
                                     </div>
-                                    <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight mb-1"></h2>
-                                    <p className="text-slate-500 font-medium text-[10px] md:text-xs mb-4 md:mb-6"></p>
-                                    
                                     <form onSubmit={handleLogin}>
                                         <div className="mb-4 md:mb-6">
-                                            {/* Disabled all copying methods for password input */}
                                             <input 
                                                 type="password" 
-                                                placeholder="" 
                                                 value={passwordInput}
                                                 onChange={(e) => setPasswordInput(e.target.value)}
                                                 onCopy={e => e.preventDefault()}
@@ -1016,7 +1071,7 @@
                                                 onDragStart={e => e.preventDefault()}
                                                 onSelect={e => e.preventDefault()}
                                                 autoComplete="new-password"
-                                                className="w-full text-center text-xl md:text-2xl tracking-[0.3em] font-black bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl px-2 py-2.5 md:px-3 md:py-3 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all text-slate-800 placeholder:tracking-normal placeholder:text-xs md:placeholder:text-sm placeholder:-translate-y-1 no-select"
+                                                className="w-full text-center text-xl md:text-2xl tracking-[0.3em] font-black bg-slate-50 border border-slate-200 rounded-lg md:rounded-xl px-2 py-2.5 md:px-3 md:py-3 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all text-slate-800 no-select"
                                                 autoFocus
                                             />
                                         </div>
