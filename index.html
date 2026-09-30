@@ -152,6 +152,28 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // Default Category Order
+        const DEFAULT_CATEGORIES = [
+            'საკვები', 
+            'სასმელი', 
+            'ერთჯერადი მასალა', 
+            'სნექი', 
+            'ხორცეული', 
+            'ცომეული', 
+            'ბოსტნეული'
+        ];
+
+        // მკვეთრი ფერები ტიპებისთვის
+        const CATEGORY_COLORS = {
+            'საკვები': 'bg-blue-100 hover:bg-blue-200 border-l-4 border-blue-500',
+            'სასმელი': 'bg-cyan-100 hover:bg-cyan-200 border-l-4 border-cyan-500',
+            'ერთჯერადი მასალა': 'bg-slate-200 hover:bg-slate-300 border-l-4 border-slate-500',
+            'სნექი': 'bg-fuchsia-100 hover:bg-fuchsia-200 border-l-4 border-fuchsia-500',
+            'ხორცეული': 'bg-rose-100 hover:bg-rose-200 border-l-4 border-rose-500',
+            'ცომეული': 'bg-amber-100 hover:bg-amber-200 border-l-4 border-amber-500',
+            'ბოსტნეული': 'bg-emerald-100 hover:bg-emerald-200 border-l-4 border-emerald-500'
+        };
+
         // UI Icons
         const Icons = {
             Event: ({ className }) => <svg className={className || "w-5 h-5 md:w-6 md:h-6"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11a2 2 0 100 4 2 2 0 000-4z"></path></svg>,
@@ -166,12 +188,14 @@
             Check: () => <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>,
             Warning: () => <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>,
             Print: () => <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>,
-            Drag: () => <svg className="w-4 h-4 text-slate-400 cursor-move hover:text-slate-600 transition-colors mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h16M4 16h16"></path></svg>
+            Drag: () => <svg className="w-4 h-4 text-slate-500 cursor-move hover:text-slate-800 transition-colors mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h16M4 16h16"></path></svg>,
+            FolderDrag: () => <svg className="w-4 h-4 text-indigo-600 cursor-move hover:text-indigo-900 transition-colors mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
         };
 
         const App = () => {
             const [guests, setGuests] = useState([]);
             const [menuItems, setMenuItems] = useState([]);
+            const [categoryOrder, setCategoryOrder] = useState(DEFAULT_CATEGORIES);
             const [aptTotal, setAptTotal] = useState(0);
 
             const [isAdmin, setIsAdmin] = useState(false);
@@ -187,9 +211,10 @@
             const [toasts, setToasts] = useState([]);
 
             const [newGuest, setNewGuest] = useState({ firstName: '', lastName: '', status: 'დასაზუსტებელი' });
-            const [newFood, setNewFood] = useState({ name: '', portion: '' });
+            const [newFood, setNewFood] = useState({ name: '', category: 'საკვები', portion: '' });
             
-            const [draggedMenuIdx, setDraggedMenuIdx] = useState(null);
+            const [draggedItem, setDraggedItem] = useState(null);
+            const [draggedCategory, setDraggedCategory] = useState(null);
 
             const inputDebounceRef = useRef({});
 
@@ -219,13 +244,15 @@
                     
                     if (data) {
                         const fetchedGuests = data.guests ? Object.keys(data.guests).map(key => ({ id: key, ...data.guests[key] })) : [];
-                        const fetchedMenu = data.menuItems ? Object.keys(data.menuItems).map(key => ({ id: key, ...data.menuItems[key] })).sort((a, b) => (a.order || 0) - (b.order || 0)) : [];
+                        const fetchedMenu = data.menuItems ? Object.keys(data.menuItems).map(key => ({ id: key, ...data.menuItems[key] })) : [];
+                        const fetchedCatOrder = data.categoryOrder || DEFAULT_CATEGORIES;
                         
                         setGuests(fetchedGuests);
                         setMenuItems(fetchedMenu);
+                        setCategoryOrder(fetchedCatOrder);
                         setAptTotal(data.aptTotal || 0);
                     } else {
-                        set(dbRef, { aptTotal: 0 });
+                        set(dbRef, { aptTotal: 0, categoryOrder: DEFAULT_CATEGORIES });
                     }
                     setIsLoadingData(false);
                 }, (error) => {
@@ -240,6 +267,21 @@
 
                 return () => unsubscribe();
             }, [showToast]);
+
+            // დინამიური სია კატეგორიებისა და პროდუქტების დალაგებით
+            const sortedGroupedMenu = useMemo(() => {
+                const result = [];
+                // ვიღებთ არსებულ კატეგორიებს ბაზიდან ან default სიიდან
+                const activeCategories = [...new Set([...categoryOrder, ...menuItems.map(i => i.category || 'საკვები')])];
+                
+                activeCategories.forEach(cat => {
+                    const itemsInCat = menuItems
+                        .filter(item => (item.category || 'საკვები') === cat)
+                        .sort((a, b) => (a.order || 0) - (b.order || 0));
+                    result.push(...itemsInCat);
+                });
+                return result;
+            }, [menuItems, categoryOrder]);
 
             const stats = useMemo(() => {
                 const confirmedGuests = guests.filter(g => g.status === 'დაზუსტებული');
@@ -346,10 +388,22 @@
                 requestConfirmation('კერძის დამატება', `ნამდვილად გსურთ დაამატოთ მენიუში: ${newFood.name}?`, () => {
                     const menuRef = ref(db, 'event/main/menuItems');
                     const newFoodRef = push(menuRef);
-                    const foodData = { name: newFood.name, portion: newFood.portion, unit: '', unitPrice: '', quantity: '', order: menuItems.length };
+                    
+                    const itemsInSameCategory = menuItems.filter(i => (i.category || 'საკვები') === newFood.category);
+                    const nextOrder = itemsInSameCategory.length;
+                    
+                    const foodData = { 
+                        name: newFood.name, 
+                        category: newFood.category,
+                        portion: newFood.portion, 
+                        unit: '', 
+                        unitPrice: '', 
+                        quantity: '', 
+                        order: nextOrder
+                    };
                     
                     set(newFoodRef, foodData).then(() => {
-                        setNewFood({ name: '', portion: '' });
+                        setNewFood({ name: '', category: 'საკვები', portion: '' });
                         showToast('კერძი დაემატა მენიუში');
                     });
                 });
@@ -372,21 +426,60 @@
                 }, 600);
             };
 
-            const handleMenuReorder = (dragIndex, dropIndex) => {
-                if (dragIndex === dropIndex) return;
+            // პროდუქტის გადაადგილება მხოლოდ საკუთარი ტიპის შიგნით
+            const handleMenuReorder = (dragItem, dropItem) => {
+                if (!dragItem || !dropItem || dragItem.id === dropItem.id) return;
                 
-                const newMenuItems = [...menuItems];
-                const draggedItem = newMenuItems.splice(dragIndex, 1)[0];
-                newMenuItems.splice(dropIndex, 0, draggedItem);
+                const dragCat = dragItem.category || 'საკვები';
+                const dropCat = dropItem.category || 'საკვები';
+
+                if (dragCat !== dropCat) {
+                    showToast('გადაადგილება შესაძლებელია მხოლოდ ერთი ტიპის შიგნით', 'error');
+                    return;
+                }
+
+                const categoryItems = menuItems
+                    .filter(i => (i.category || 'საკვები') === dragCat)
+                    .sort((a, b) => (a.order || 0) - (b.order || 0));
+                
+                const dragIdx = categoryItems.findIndex(i => i.id === dragItem.id);
+                const dropIdx = categoryItems.findIndex(i => i.id === dropItem.id);
+
+                if (dragIdx === -1 || dropIdx === -1) return;
+
+                const reorderedItems = [...categoryItems];
+                const [removed] = reorderedItems.splice(dragIdx, 1);
+                reorderedItems.splice(dropIdx, 0, removed);
                 
                 const updates = {};
-                const updatedList = newMenuItems.map((item, idx) => {
-                    updates[`${item.id}/order`] = idx;
-                    return { ...item, order: idx };
+                const newMenuItemsState = [...menuItems]; 
+                
+                reorderedItems.forEach((item, index) => {
+                    updates[`${item.id}/order`] = index;
+                    const stateIdx = newMenuItemsState.findIndex(i => i.id === item.id);
+                    if (stateIdx > -1) newMenuItemsState[stateIdx].order = index;
                 });
                 
-                setMenuItems(updatedList);
-                update(ref(db, 'event/main/menuItems'), updates);
+                setMenuItems(newMenuItemsState);
+                update(ref(db, 'event/main/menuItems'), updates).catch(() => showToast('შეცდომა განახლებისას', 'error'));
+            };
+
+            // მთლიანი ტიპის (კატეგორიის) გადაადგილება
+            const handleCategoryReorder = (dragCat, dropCat) => {
+                if (!dragCat || !dropCat || dragCat === dropCat) return;
+
+                const activeCategories = [...new Set([...categoryOrder, ...menuItems.map(i => i.category || 'საკვები')])];
+                const dragIdx = activeCategories.indexOf(dragCat);
+                const dropIdx = activeCategories.indexOf(dropCat);
+
+                if (dragIdx === -1 || dropIdx === -1) return;
+
+                const newOrder = [...activeCategories];
+                const [removed] = newOrder.splice(dragIdx, 1);
+                newOrder.splice(dropIdx, 0, removed);
+
+                setCategoryOrder(newOrder);
+                set(ref(db, 'event/main/categoryOrder'), newOrder).catch(() => showToast('შეცდომა კატეგორიების განახლებისას', 'error'));
             };
 
             const handleAptTotalChange = (value) => {
@@ -652,7 +745,7 @@
                         </div>
                     )}
 
-                    {/* Stretched Menu Modal - Contains #print-area */}
+                    {/* Stretched Menu Modal */}
                     {showMenuModal && (
                         <div className="fixed inset-0 z-50 flex pointer-events-none">
                             {/* Backdrop */}
@@ -683,88 +776,141 @@
                                 
                                 <div className="flex-grow overflow-y-auto p-2 md:p-6 bg-slate-50/50 flex flex-col">
                                     <div className="bg-white border border-slate-200 rounded-lg md:rounded-xl shadow-sm overflow-x-auto flex-grow">
-                                        <table className="w-full text-left border-collapse min-w-[450px] md:min-w-[700px]">
+                                        <table className="w-full text-left border-collapse min-w-[500px] md:min-w-[750px]">
                                             <thead className="bg-slate-100 text-slate-500 text-[8px] md:text-[10px] font-bold uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10">
                                                 <tr>
-                                                    {isAdmin && <th className="py-2 md:py-3 px-1 md:px-2 w-6 md:w-10 no-print"></th>}
+                                                    {isAdmin && <th className="py-2 md:py-3 px-1 w-6 md:w-8 text-center no-print" title="ტიპის გადაადგილება"></th>}
+                                                    {isAdmin && <th className="py-2 md:py-3 px-1 w-6 md:w-8 text-center no-print" title="პროდუქტის გადაადგილება"></th>}
                                                     <th className="py-2 md:py-3 px-2 md:px-3 w-1/4">საკვები</th>
+                                                    {isAdmin && <th className="py-2 md:py-3 px-2 md:px-3 no-print w-32">ტიპი (ადმინ)</th>}
                                                     <th className="py-2 md:py-3 px-2 md:px-3 text-center">ერთეული</th>
                                                     <th className="py-2 md:py-3 px-2 md:px-3 text-right">ერთ. ფასი</th>
                                                     <th className="py-2 md:py-3 px-2 md:px-3 text-center">რაოდენობა</th>
-                                                    <th className="py-2 md:py-3 px-2 md:px-3 text-right bg-amber-50/50 text-amber-700">თანხა ამ საკვებზე</th>
+                                                    <th className="py-2 md:py-3 px-2 md:px-3 text-right text-amber-700">თანხა ამ საკვებზე</th>
                                                     {isAdmin && <th className="py-2 md:py-3 px-1 md:px-2 w-6 md:w-10 no-print"></th>}
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-slate-100">
-                                                {menuItems.length === 0 ? (
-                                                    <tr><td colSpan={isAdmin ? 7 : 5} className="py-6 md:py-8 text-center text-slate-400 font-bold text-xs md:text-sm">მენიუ ცარიელია</td></tr>
-                                                ) : menuItems.map((item, index) => {
+                                            <tbody className="divide-y divide-slate-200">
+                                                {sortedGroupedMenu.length === 0 ? (
+                                                    <tr><td colSpan={isAdmin ? 9 : 5} className="py-6 md:py-8 text-center text-slate-400 font-bold text-xs md:text-sm">მენიუ ცარიელია</td></tr>
+                                                ) : sortedGroupedMenu.map((item) => {
                                                     const price = Number(item.unitPrice) || 0;
                                                     const qty = Number(item.quantity) || 0;
                                                     const itemTotal = price * qty;
                                                     const isMissingData = item.unitPrice === '' || item.unitPrice == null || item.quantity === '' || item.quantity == null;
+                                                    const currentCat = item.category || 'საკვები';
+                                                    const rowBgClass = CATEGORY_COLORS[currentCat] || 'bg-slate-100';
+
+                                                    // ვამოწმებთ არის თუ არა ეს ნივთი თავის კატეგორიაში პირველი, რომ გამოვუჩინოთ ტიპის გადაადგილების ნიშანი
+                                                    const catItems = sortedGroupedMenu.filter(i => (i.category || 'საკვები') === currentCat);
+                                                    const isFirstInCategory = catItems[0]?.id === item.id;
 
                                                     return (
                                                         <tr 
                                                             key={item.id} 
-                                                            className="hover:bg-slate-50 transition-colors group"
+                                                            className={`transition-colors group ${rowBgClass}`}
                                                             draggable={isAdmin}
-                                                            onDragStart={() => setDraggedMenuIdx(index)}
+                                                            onDragStart={() => setDraggedItem(item)}
                                                             onDragOver={(e) => e.preventDefault()}
                                                             onDrop={(e) => {
                                                                 e.preventDefault();
-                                                                if (draggedMenuIdx !== null) handleMenuReorder(draggedMenuIdx, index);
-                                                                setDraggedMenuIdx(null);
+                                                                if (draggedItem !== null) handleMenuReorder(draggedItem, item);
+                                                                setDraggedItem(null);
                                                             }}
                                                         >
+                                                            {/* მთლიანი ტიპის (კატეგორიის) გადაადგილების ნიშანი */}
                                                             {isAdmin && (
-                                                                <td className="py-1.5 md:py-2.5 px-1 md:px-2 text-center align-middle cursor-move no-print">
-                                                                    <Icons.Drag />
+                                                                <td className="py-1.5 md:py-2.5 px-0.5 text-center align-middle no-print">
+                                                                    {isFirstInCategory ? (
+                                                                        <div 
+                                                                            draggable="true"
+                                                                            onDragStart={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setDraggedCategory(currentCat);
+                                                                            }}
+                                                                            onDragOver={(e) => e.preventDefault()}
+                                                                            onDrop={(e) => {
+                                                                                e.preventDefault();
+                                                                                e.stopPropagation();
+                                                                                if (draggedCategory) {
+                                                                                    handleCategoryReorder(draggedCategory, currentCat);
+                                                                                    setDraggedCategory(null);
+                                                                                }
+                                                                            }}
+                                                                            title={`ტიპის ("${currentCat}") გადაადგილება`}
+                                                                            className="cursor-grab active:cursor-grabbing inline-block p-1 bg-white/80 rounded shadow-sm hover:bg-white"
+                                                                        >
+                                                                            <Icons.FolderDrag />
+                                                                        </div>
+                                                                    ) : null}
                                                                 </td>
                                                             )}
+
+                                                            {/* კონკრეტული პროდუქტის გადაადგილების ნიშანი */}
+                                                            {isAdmin && (
+                                                                <td className="py-1.5 md:py-2.5 px-0.5 text-center align-middle no-print">
+                                                                    <div title="პროდუქტის გადაადგილება" className="cursor-move inline-block">
+                                                                        <Icons.Drag />
+                                                                    </div>
+                                                                </td>
+                                                            )}
+
                                                             <td className="py-1.5 md:py-2.5 px-2 md:px-3">
-                                                                <div className="font-bold text-slate-800 text-[10px] md:text-sm">{item.name}</div>
+                                                                <div className="font-bold text-slate-900 text-[10px] md:text-sm">{item.name}</div>
                                                                 {item.portion && (
-                                                                    <div className="text-[8px] md:text-[10px] text-amber-700 mt-0.5 font-bold bg-amber-50 inline-block px-1 md:px-1.5 py-0.5 rounded border border-amber-100">
-                                                                        მოთხოვნილი პორცია: {item.portion}
+                                                                    <div className="text-[8px] md:text-[10px] text-slate-700 mt-0.5 font-bold bg-white/70 inline-block px-1 md:px-1.5 py-0.5 rounded border border-slate-300 shadow-sm">
+                                                                        მოთხოვნილი: {item.portion}
                                                                     </div>
                                                                 )}
                                                             </td>
+
+                                                            {/* ადმინისტრატორისთვის ცხრილში ტიპის შეცვლის სვეტი (მომხმარებელს და ბეჭდვაზე არ უჩანს) */}
+                                                            {isAdmin && (
+                                                                <td className="py-1.5 md:py-2.5 px-2 md:px-3 no-print">
+                                                                    <select 
+                                                                        value={currentCat} 
+                                                                        onChange={(e) => handleUpdateFood(item.id, 'category', e.target.value)}
+                                                                        className="w-full bg-white border border-slate-300 rounded px-1.5 py-1 text-[10px] font-bold text-slate-800 outline-none focus:ring-1 focus:ring-amber-500 shadow-sm cursor-pointer"
+                                                                    >
+                                                                        {DEFAULT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                                                    </select>
+                                                                </td>
+                                                            )}
                                                             
                                                             <td className="py-1.5 md:py-2.5 px-2 md:px-3 text-center">
                                                                 {isAdmin ? (
-                                                                    <input type="text" placeholder="ცალი" value={item.unit} onChange={e => handleUpdateFood(item.id, 'unit', e.target.value)} className="w-10 md:w-16 bg-white border border-slate-200 rounded px-1 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs focus:ring-1 focus:ring-amber-500 outline-none text-center" />
+                                                                    <input type="text" placeholder="ცალი" value={item.unit} onChange={e => handleUpdateFood(item.id, 'unit', e.target.value)} className="w-10 md:w-16 bg-white border border-slate-300 rounded px-1 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs focus:ring-1 focus:ring-amber-500 outline-none text-center shadow-sm" />
                                                                 ) : (
-                                                                    <span className="text-[10px] md:text-xs font-medium text-slate-600">{item.unit || '-'}</span>
+                                                                    <span className="text-[10px] md:text-xs font-medium text-slate-800">{item.unit || '-'}</span>
                                                                 )}
                                                             </td>
 
                                                             <td className="py-1.5 md:py-2.5 px-2 md:px-3 text-right">
                                                                 {isAdmin ? (
                                                                     <div className="flex justify-end items-center gap-1">
-                                                                        <input type="number" min="0" placeholder="0" value={item.unitPrice} onChange={e => handleUpdateFood(item.id, 'unitPrice', e.target.value)} className="w-12 md:w-16 text-right bg-white border border-slate-200 rounded px-1 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-bold focus:ring-1 focus:ring-amber-500 outline-none" />
-                                                                        <span className="text-slate-400 text-[8px] md:text-xs">₾</span>
+                                                                        <input type="number" min="0" placeholder="0" value={item.unitPrice} onChange={e => handleUpdateFood(item.id, 'unitPrice', e.target.value)} className="w-12 md:w-16 text-right bg-white border border-slate-300 rounded px-1 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-bold focus:ring-1 focus:ring-amber-500 outline-none shadow-sm" />
+                                                                        <span className="text-slate-600 text-[8px] md:text-xs">₾</span>
                                                                     </div>
                                                                 ) : (
-                                                                    <span className="text-[10px] md:text-xs font-bold text-slate-700">{item.unitPrice !== '' && item.unitPrice != null ? `${item.unitPrice} ₾` : '-'}</span>
+                                                                    <span className="text-[10px] md:text-xs font-bold text-slate-900">{item.unitPrice !== '' && item.unitPrice != null ? `${item.unitPrice} ₾` : '-'}</span>
                                                                 )}
                                                             </td>
                                                             
                                                             <td className="py-1.5 md:py-2.5 px-2 md:px-3 text-center">
                                                                 {isAdmin ? (
-                                                                    <input type="number" min="0" placeholder="0" value={item.quantity} onChange={e => handleUpdateFood(item.id, 'quantity', e.target.value)} className="w-10 md:w-14 text-center bg-white border border-slate-200 rounded px-1 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-bold focus:ring-1 focus:ring-amber-500 outline-none mx-auto block" />
+                                                                    <input type="number" min="0" placeholder="0" value={item.quantity} onChange={e => handleUpdateFood(item.id, 'quantity', e.target.value)} className="w-10 md:w-14 text-center bg-white border border-slate-300 rounded px-1 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-bold focus:ring-1 focus:ring-amber-500 outline-none mx-auto block shadow-sm" />
                                                                 ) : (
-                                                                    <span className="text-[10px] md:text-xs font-bold text-slate-700">{item.quantity !== '' && item.quantity != null ? item.quantity : '-'}</span>
+                                                                    <span className="text-[10px] md:text-xs font-bold text-slate-900">{item.quantity !== '' && item.quantity != null ? item.quantity : '-'}</span>
                                                                 )}
                                                             </td>
 
-                                                            <td className="py-1.5 md:py-2.5 px-2 md:px-3 text-right bg-amber-50/20 align-middle">
+                                                            <td className="py-1.5 md:py-2.5 px-2 md:px-3 text-right align-middle">
                                                                 {isMissingData ? (
-                                                                    <span className="text-[8px] md:text-[10px] font-bold text-amber-600 bg-amber-100 px-1 md:px-2 py-0.5 md:py-1 rounded border border-amber-200 block md:inline-block text-center">
+                                                                    <span className="text-[8px] md:text-[10px] font-bold text-amber-800 bg-amber-200 px-1 md:px-2 py-0.5 md:py-1 rounded border border-amber-300 block md:inline-block text-center shadow-sm">
                                                                         ფასს დაამატებს ადმინი
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="text-[10px] md:text-sm font-black text-slate-800 block min-w-[50px] text-right">
+                                                                    <span className="text-[10px] md:text-sm font-black text-slate-950 block min-w-[50px] text-right">
                                                                         {itemTotal} ₾
                                                                     </span>
                                                                 )}
@@ -772,7 +918,7 @@
 
                                                             {isAdmin && (
                                                                 <td className="py-1.5 md:py-2.5 px-1 md:px-2 text-center no-print">
-                                                                    <button onClick={() => handleDeleteFood(item.id)} className="text-slate-300 hover:text-rose-500 p-0.5 md:p-1 rounded hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100">
+                                                                    <button onClick={() => handleDeleteFood(item.id)} className="text-slate-500 hover:text-rose-600 p-0.5 md:p-1 rounded hover:bg-rose-200 transition-all opacity-0 group-hover:opacity-100">
                                                                         <Icons.Trash />
                                                                     </button>
                                                                 </td>
@@ -824,6 +970,12 @@
                                         <div className="flex-1 w-full">
                                             <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">სახელი</label>
                                             <input required type="text" placeholder="მაგ. ხაჭაპური" value={newFood.name} onChange={e => setNewFood({...newFood, name: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-md md:rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white" />
+                                        </div>
+                                        <div className="flex-1 w-full">
+                                            <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">ტიპი</label>
+                                            <select value={newFood.category} onChange={e => setNewFood({...newFood, category: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-md md:rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white cursor-pointer text-slate-700">
+                                                {DEFAULT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
                                         </div>
                                         <div className="flex-1 w-full">
                                             <label className="block text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">პორცია</label>
