@@ -59,7 +59,7 @@
         }
         .toast-enter { animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-        /* Loader Animation (No Background) */
+        /* Loader Animation */
         @keyframes spinSlow {
             100% { transform: rotate(360deg); }
         }
@@ -77,7 +77,7 @@
         import { initializeApp } from 'firebase/app';
         import { getDatabase, ref, onValue, set, update, remove, push } from 'firebase/database';
 
-        // Firebase Setup (Realtime Database v9)
+        // Firebase Setup
         const firebaseConfig = {
             apiKey: "AIzaSyAEbSWfiZ6xGL7_NoVVFpy-JkGwebb78RQ",
             authDomain: "using-6af8b.firebaseapp.com",
@@ -93,17 +93,17 @@
 
         // UI Icons
         const Icons = {
-            Party: ({ className }) => <svg className={className || "w-7 h-7"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"></path></svg>,
-            Refresh: ({ className }) => <svg className={className || "w-6 h-6"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>,
-            Settings: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>,
+            Event: ({ className }) => <svg className={className || "w-6 h-6"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>,
+            Refresh: ({ className }) => <svg className={className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>,
+            Settings: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>,
             Lock: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>,
-            Unlock: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>,
-            Menu: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>,
-            Plus: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>,
-            Close: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>,
-            Trash: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>,
-            Check: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>,
-            Warning: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            Unlock: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>,
+            Menu: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>,
+            Plus: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>,
+            Close: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>,
+            Trash: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>,
+            Check: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>,
+            Warning: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
         };
 
         const App = () => {
@@ -122,7 +122,6 @@
             const [newGuest, setNewGuest] = useState({ firstName: '', lastName: '', status: 'დასაზუსტებელი' });
             const [newFood, setNewFood] = useState({ name: '', portion: '' });
 
-            // Using refs for debouncing local inputs to Firebase
             const inputDebounceRef = useRef({});
 
             const showToast = useCallback((message, type = 'success') => {
@@ -142,7 +141,6 @@
                     const data = snapshot.val();
                     
                     if (data) {
-                        // Convert DB objects to arrays for easier React mapping
                         const fetchedGuests = data.guests ? Object.keys(data.guests).map(key => ({ id: key, ...data.guests[key] })) : [];
                         const fetchedMenu = data.menuItems ? Object.keys(data.menuItems).map(key => ({ id: key, ...data.menuItems[key] })) : [];
                         
@@ -150,7 +148,6 @@
                         setMenuItems(fetchedMenu);
                         setAptTotal(data.aptTotal || 0);
                     } else {
-                        // Initialize structure if completely empty
                         set(dbRef, { aptTotal: 0 });
                     }
                     setIsLoadingData(false);
@@ -158,7 +155,7 @@
                     console.error("Firebase Error: ", error);
                     setIsLoadingData(false);
                     if (error.message.includes('permission_denied')) {
-                        showToast('შეცდომა: Realtime Database-ის წესები (Rules) არ იძლევა წაკითხვის უფლებას.', 'error');
+                        showToast('შეცდომა: მონაცემების წაკითხვის უფლება არ გაქვთ.', 'error');
                     } else {
                         showToast('მონაცემების ჩატვირთვა ვერ მოხერხდა.', 'error');
                     }
@@ -251,10 +248,8 @@
             };
 
             const handleUpdateFood = (id, field, value) => {
-                // Update local state immediately for snappy UI
                 setMenuItems(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
                 
-                // Debounce Firebase write
                 const debounceKey = `food_${id}_${field}`;
                 if (inputDebounceRef.current[debounceKey]) clearTimeout(inputDebounceRef.current[debounceKey]);
                 
@@ -276,81 +271,83 @@
             return (
                 <div className="min-h-screen flex flex-col bg-slate-50 relative">
                     
-                    {/* Header Top Section (Exactly 1cm Padding) */}
-                    <div className="w-full flex justify-end p-[1cm] pb-0">
-                        {isAdmin ? (
-                            <button onClick={() => { setIsAdmin(false); showToast('გამოხვედით სისტემიდან'); }} className="flex items-center gap-2 px-5 py-2.5 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 rounded-xl text-sm font-bold transition-all shadow-sm">
-                                <Icons.Unlock />
-                                <span>ადმინ. გასვლა</span>
-                            </button>
-                        ) : (
-                            <button onClick={() => setShowLoginModal(true)} className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-lg">
-                                <Icons.Settings />
-                                <span>ადმინისტრატორი</span>
-                            </button>
-                        )}
+                    {/* Header Section (Moved Title to top left, Admin to top right) */}
+                    <div className="w-full flex justify-between items-center px-4 py-4 md:px-8 bg-white border-b border-slate-200 shadow-sm z-10">
+                        <h1 className="text-lg md:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                            <div className="text-indigo-600 bg-indigo-50 p-1.5 rounded-lg border border-indigo-100 shadow-sm">
+                                <Icons.Event />
+                            </div>
+                            ღონისძიების მართვა
+                        </h1>
+                        
+                        <div>
+                            {isAdmin ? (
+                                <button onClick={() => { setIsAdmin(false); showToast('გამოხვედით სისტემიდან'); }} className="flex items-center gap-2 px-3 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 rounded-lg text-xs font-bold transition-all shadow-sm">
+                                    <Icons.Unlock />
+                                    <span className="hidden sm:inline">ადმინ. გასვლა</span>
+                                    <span className="sm:hidden">გასვლა</span>
+                                </button>
+                            ) : (
+                                <button onClick={() => setShowLoginModal(true)} className="flex items-center gap-2 px-3 py-2 bg-slate-900 text-white hover:bg-slate-800 rounded-lg text-xs font-bold transition-all shadow-md">
+                                    <Icons.Settings />
+                                    <span className="hidden sm:inline">ადმინისტრატორი</span>
+                                    <span className="sm:hidden">ადმინი</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Main Content Area: Padding exactly 1cm. Flex column for mobile, flex row for desktop */}
-                    <main className="flex-grow w-full p-[1cm] pt-6 flex flex-col lg:flex-row gap-8 lg:gap-0">
+                    {/* Main Content Area: Reduced Paddings, lifted up */}
+                    <main className="flex-grow w-full px-4 py-6 md:px-8 md:py-8 flex flex-col lg:flex-row gap-6">
                         
-                        {/* LEFT COLUMN: Guests List (2/3 width, with prominent vertical divider on right) */}
-                        <div className="w-full lg:w-2/3 lg:pr-[1cm] lg:border-r-4 lg:border-slate-300 flex flex-col">
+                        {/* LEFT COLUMN */}
+                        <div className="w-full lg:w-2/3 lg:pr-6 lg:border-r border-slate-200 flex flex-col">
                             
-                            <div className="flex items-center gap-4 mb-8">
-                                <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                                    <div className="text-indigo-600 bg-indigo-50 p-2 rounded-xl border border-indigo-100 shadow-sm">
-                                        <Icons.Party />
-                                    </div>
-                                    ღონისძიების მართვა
-                                </h1>
-                            </div>
-
                             {/* Add Guest Form (ONLY ADMIN CAN ADD GUESTS) */}
                             {isAdmin && (
-                                <form onSubmit={handleAddGuest} className="mb-6 p-6 bg-white border border-indigo-100 rounded-2xl shadow-sm relative overflow-hidden shrink-0">
-                                    <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500"></div>
-                                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <form onSubmit={handleAddGuest} className="mb-5 p-4 bg-white border border-indigo-100 rounded-xl shadow-sm relative overflow-hidden shrink-0">
+                                    <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+                                    <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                                         <Icons.Plus /> ახალი სტუმარი
                                     </h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 items-end">
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-500 mb-1.5 ml-1">სახელი</label>
-                                            <input required type="text" value={newGuest.firstName} onChange={e => setNewGuest({...newGuest, firstName: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium" />
+                                            <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">სახელი</label>
+                                            <input required type="text" value={newGuest.firstName} onChange={e => setNewGuest({...newGuest, firstName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white transition-all font-medium" />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-500 mb-1.5 ml-1">გვარი</label>
-                                            <input required type="text" value={newGuest.lastName} onChange={e => setNewGuest({...newGuest, lastName: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium" />
+                                            <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">გვარი</label>
+                                            <input required type="text" value={newGuest.lastName} onChange={e => setNewGuest({...newGuest, lastName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white transition-all font-medium" />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-500 mb-1.5 ml-1">სტატუსი</label>
-                                            <select value={newGuest.status} onChange={e => setNewGuest({...newGuest, status: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer font-bold text-slate-700 focus:bg-white">
+                                            <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">სტატუსი</label>
+                                            <select value={newGuest.status} onChange={e => setNewGuest({...newGuest, status: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer font-bold text-slate-700 focus:bg-white">
                                                 <option value="დასაზუსტებელი">დასაზუსტებელი</option>
                                                 <option value="დაზუსტებული">დაზუსტებული</option>
                                             </select>
                                         </div>
-                                        <button type="submit" className="bg-indigo-600 text-white rounded-xl px-4 py-3 text-sm font-bold hover:bg-indigo-700 transition-all shadow-md w-full sm:col-span-2 md:col-span-1">
+                                        <button type="submit" className="bg-indigo-600 text-white rounded-lg px-3 py-2 text-sm font-bold hover:bg-indigo-700 transition-all shadow-sm w-full sm:col-span-2 md:col-span-1">
                                             დამატება
                                         </button>
                                     </div>
                                 </form>
                             )}
 
-                            {}
-                            <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white shrink-0">
-                                <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
-                                    <thead>
-                                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-wider">
-                                            <th className="py-4 px-4 w-1/5 truncate">სტუმარი</th>
-                                            <th className="py-4 px-4 w-1/5 text-center truncate">სტატუსი</th>
-                                            <th className="py-4 px-4 w-1/5 text-right truncate">ბინა</th>
-                                            <th className="py-4 px-4 w-1/5 text-right truncate">საკვები</th>
-                                            <th className="py-4 px-4 w-1/5 text-right bg-indigo-50/50 truncate">სრული</th>
+                            {/* Scrollable Guest Table */}
+                            <div className="overflow-x-auto overflow-y-auto max-h-[350px] rounded-xl border border-slate-200 shadow-sm bg-white shrink-0 relative">
+                                <table className="w-full text-left border-collapse table-fixed min-w-[650px]">
+                                    <thead className="sticky top-0 z-10 bg-slate-100 shadow-[0_1px_0_0_#e2e8f0]">
+                                        <tr className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                                            <th className="py-3 px-3 w-1/5 truncate">სტუმარი</th>
+                                            <th className="py-3 px-3 w-1/5 text-center truncate">სტატუსი</th>
+                                            <th className="py-3 px-3 w-1/5 text-right truncate">ბინა</th>
+                                            <th className="py-3 px-3 w-1/5 text-right truncate">საკვები</th>
+                                            <th className="py-3 px-3 w-1/5 text-right text-indigo-700 bg-indigo-50/80 truncate">სრული</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100">
+                                    <tbody className="divide-y divide-slate-100 text-sm">
                                         {guests.length === 0 ? (
-                                            <tr><td colSpan="5" className="py-16 text-center text-slate-400 font-medium">სია ცარიელია</td></tr>
+                                            <tr><td colSpan="5" className="py-10 text-center text-slate-400 font-medium">სია ცარიელია</td></tr>
                                         ) : guests.map(guest => {
                                             const isConfirmed = guest.status === 'დაზუსტებული';
                                             const aptCost = isConfirmed ? stats.aptPerPerson : 0;
@@ -359,15 +356,15 @@
 
                                             return (
                                                 <tr key={guest.id} className="hover:bg-slate-50 transition-colors group relative">
-                                                    <td className="py-4 px-4 truncate align-middle w-1/5">
-                                                        <div className="font-bold text-slate-900">{guest.firstName} {guest.lastName}</div>
+                                                    <td className="py-2.5 px-3 truncate align-middle w-1/5">
+                                                        <div className="font-bold text-slate-800">{guest.firstName} {guest.lastName}</div>
                                                     </td>
-                                                    <td className="py-4 px-4 text-center align-middle w-1/5">
+                                                    <td className="py-2.5 px-3 text-center align-middle w-1/5">
                                                         {isAdmin ? (
                                                             <select 
                                                                 value={guest.status} 
                                                                 onChange={(e) => handleStatusChange(guest.id, e.target.value)}
-                                                                className={`text-[11px] font-bold rounded-lg px-1 py-1.5 border outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm w-full text-center ${
+                                                                className={`text-[10px] font-bold rounded px-1 py-1 border outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer w-full text-center ${
                                                                     isConfirmed ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
                                                                 }`}
                                                             >
@@ -375,33 +372,33 @@
                                                                 <option value="დასაზუსტებელი">დასაზუსტებელი</option>
                                                             </select>
                                                         ) : (
-                                                            <span className={`inline-flex items-center justify-center w-full px-1 py-1.5 rounded-lg text-[11px] font-bold border shadow-sm truncate ${
+                                                            <span className={`inline-flex items-center justify-center w-full px-1 py-1 rounded text-[10px] font-bold border truncate ${
                                                                 isConfirmed ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
                                                             }`}>
                                                                 {guest.status}
                                                             </span>
                                                         )}
                                                     </td>
-                                                    <td className="py-4 px-4 text-right font-medium text-slate-600 truncate align-middle w-1/5">
+                                                    <td className="py-2.5 px-3 text-right font-medium text-slate-600 truncate align-middle w-1/5">
                                                         {isConfirmed ? `${aptCost.toFixed(1)} ₾` : '0 ₾'}
                                                     </td>
-                                                    <td className="py-4 px-4 text-right font-medium text-slate-600 truncate align-middle w-1/5">
+                                                    <td className="py-2.5 px-3 text-right font-medium text-slate-600 truncate align-middle w-1/5">
                                                         {isConfirmed ? `${foodCost.toFixed(1)} ₾` : '0 ₾'}
                                                     </td>
-                                                    <td className="py-4 px-4 text-right bg-indigo-50/30 truncate align-middle relative w-1/5">
+                                                    <td className="py-2.5 px-3 text-right bg-indigo-50/30 truncate align-middle relative w-1/5">
                                                         {isConfirmed ? (
-                                                            <span className="font-black text-indigo-700 bg-white border border-indigo-100 rounded-lg px-2 py-1.5 shadow-sm inline-block w-full text-center relative z-10">
+                                                            <span className="font-bold text-indigo-700 bg-white border border-indigo-100 rounded px-2 py-1 shadow-sm inline-block w-full text-center relative z-0">
                                                                 {totalCost.toFixed(1)} ₾
                                                             </span>
                                                         ) : (
-                                                            <span className="font-black text-slate-400 bg-white border border-slate-200 rounded-lg px-2 py-1.5 shadow-sm inline-block w-full text-center relative z-10">
+                                                            <span className="font-bold text-slate-400 bg-white border border-slate-200 rounded px-2 py-1 shadow-sm inline-block w-full text-center relative z-0">
                                                                 0 ₾
                                                             </span>
                                                         )}
                                                         {isAdmin && (
                                                             <button 
                                                                 onClick={() => handleDeleteGuest(guest.id)} 
-                                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-rose-300 hover:text-rose-600 bg-white shadow-sm border border-rose-100 p-1.5 rounded-lg hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100 z-20"
+                                                                className="absolute right-1 top-1/2 -translate-y-1/2 text-rose-400 hover:text-rose-600 bg-white shadow-sm border border-rose-200 p-1 rounded hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100 z-10"
                                                                 title="წაშლა"
                                                             >
                                                                 <Icons.Trash />
@@ -415,101 +412,100 @@
                                 </table>
                             </div>
                             
-                            <div className="mt-5 text-slate-600 font-bold text-sm bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex items-center gap-3">
-                                <Icons.Warning />
+                            <div className="mt-3 text-slate-500 font-bold text-xs bg-blue-50/60 p-3 rounded-lg border border-blue-100 flex items-start gap-2">
+                                <div className="mt-0.5 text-blue-400"><Icons.Warning /></div>
                                 <span>თანხები საშუალოა და საკვების რეალური თანხის შემდეგ შეიძლება შეიცვალოს</span>
                             </div>
                         </div>
 
-                        {}
-                        <div className="w-full lg:w-1/3 lg:pl-[1cm] flex flex-col gap-6 pt-0 lg:pt-20">
+                        {/* RIGHT COLUMN */}
+                        <div className="w-full lg:w-1/3 flex flex-col gap-4">
                             
-                            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
-                                <h2 className="text-xl font-black text-slate-900 mb-6 border-b-2 border-slate-100 pb-4">ჯამური მონაცემები</h2>
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                                <h2 className="text-sm font-black text-slate-800 mb-4 uppercase tracking-wider border-b border-slate-100 pb-2">ჯამური მონაცემები</h2>
                                 
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <div className="text-slate-600 font-bold text-sm">დაზუსტებული სტუმრები</div>
-                                        <span className="text-2xl font-black text-indigo-600">{stats.confirmedCount}</span>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                        <div className="text-slate-500 font-bold text-xs">დაზუსტებული სტუმრები</div>
+                                        <span className="text-lg font-black text-indigo-600">{stats.confirmedCount}</span>
                                     </div>
 
-                                    <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <div className="text-slate-600 font-bold text-sm">ბინის გადასახადი</div>
+                                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                        <div className="text-slate-500 font-bold text-xs">ბინის გადასახადი</div>
                                         {isAdmin ? (
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1.5">
                                                 <input 
                                                     type="number" min="0" value={aptTotal} 
                                                     onChange={e => handleAptTotalChange(e.target.value)}
-                                                    className="w-24 text-right bg-white border-2 border-indigo-200 rounded-xl px-2 py-1.5 font-black text-lg text-slate-900 focus:outline-none focus:border-indigo-500 shadow-sm"
+                                                    className="w-20 text-right bg-white border border-indigo-200 rounded-md px-2 py-1 font-black text-sm text-slate-800 focus:outline-none focus:border-indigo-500 shadow-sm"
                                                 />
-                                                <span className="text-slate-400 font-bold">₾</span>
+                                                <span className="text-slate-400 font-bold text-sm">₾</span>
                                             </div>
                                         ) : (
-                                            <span className="text-xl font-black text-slate-900">{Number(aptTotal) || 0} ₾</span>
+                                            <span className="text-lg font-black text-slate-800">{Number(aptTotal) || 0} ₾</span>
                                         )}
                                     </div>
 
-                                    <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <div className="text-slate-600 font-bold text-sm">საკვების გადასახადი</div>
-                                        <span className="text-xl font-black text-slate-900">{stats.foodTotal} ₾</span>
+                                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                        <div className="text-slate-500 font-bold text-xs">საკვების გადასახადი</div>
+                                        <span className="text-lg font-black text-slate-800">{stats.foodTotal} ₾</span>
                                     </div>
                                 </div>
                             </div>
 
                             <button 
                                 onClick={() => setShowMenuModal(true)} 
-                                className="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white font-black py-6 px-8 rounded-3xl transition-all shadow-lg hover:shadow-xl flex items-center justify-between group"
+                                className="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white font-black py-4 px-5 rounded-xl transition-all shadow border border-amber-500 flex items-center justify-between group"
                             >
-                                <div className="flex items-center gap-4 text-2xl">
+                                <div className="flex items-center gap-3 text-lg">
                                     <Icons.Menu />
                                     მენიუ
                                 </div>
-                                <span className="bg-white text-amber-600 px-4 py-2 rounded-xl text-sm shadow-md group-hover:scale-105 transition-transform">გახსნა</span>
+                                <span className="bg-white text-amber-600 px-3 py-1.5 rounded-lg text-xs shadow-sm group-hover:scale-105 transition-transform">გახსნა</span>
                             </button>
                         </div>
                     </main>
 
-                    {}
+                    {/* Menu Modal */}
                     {showMenuModal && (
-                        <div className="fixed inset-0 z-50 pointer-events-none">
-                            <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm pointer-events-auto" onClick={() => setShowMenuModal(false)}></div>
-                            <div className="absolute inset-[1cm] bg-white rounded-3xl shadow-2xl modal-enter flex flex-col overflow-hidden pointer-events-auto">
+                        <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center p-4">
+                            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm pointer-events-auto" onClick={() => setShowMenuModal(false)}></div>
+                            <div className="relative bg-white rounded-2xl shadow-2xl modal-enter flex flex-col overflow-hidden pointer-events-auto w-full max-w-4xl max-h-[90vh]">
                                 
-                                <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
-                                    <div className="flex items-center gap-3">
-                                        <div className="bg-amber-500 text-white p-2.5 rounded-xl shadow-md">
+                                <div className="px-5 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="bg-amber-500 text-white p-2 rounded-lg shadow-sm">
                                             <Icons.Menu />
                                         </div>
-                                        <h2 className="text-2xl font-black text-slate-900">სადღესასწაულო მენიუ</h2>
+                                        <h2 className="text-lg font-black text-slate-800">სადღესასწაულო მენიუ</h2>
                                     </div>
-                                    <button onClick={() => setShowMenuModal(false)} className="text-slate-400 hover:text-slate-900 p-2 rounded-xl hover:bg-slate-200 bg-white border border-slate-200 transition-colors">
+                                    <button onClick={() => setShowMenuModal(false)} className="text-slate-400 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-200 transition-colors">
                                         <Icons.Close />
                                     </button>
                                 </div>
                                 
-                                <div className="flex-grow overflow-y-auto p-6 bg-slate-50/50">
-                                    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-x-auto">
-                                        <table className="w-full text-left border-collapse min-w-[800px]">
-                                            <thead className="bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
+                                <div className="flex-grow overflow-y-auto p-4 md:p-6 bg-slate-50/50">
+                                    <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-x-auto">
+                                        <table className="w-full text-left border-collapse min-w-[700px]">
+                                            <thead className="bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider border-b border-slate-200">
                                                 <tr>
-                                                    <th className="py-4 px-4 w-1/4">საკვები</th>
-                                                    {/* Admin sees full columns, User sees limited columns */}
+                                                    <th className="py-3 px-3 w-1/4">საკვები</th>
                                                     {isAdmin ? (
                                                         <>
-                                                            <th className="py-4 px-4">ერთეული</th>
-                                                            <th className="py-4 px-4 text-right">ერთეულის ფასი</th>
-                                                            <th className="py-4 px-4 text-center">რაოდენობა</th>
-                                                            <th className="py-4 px-4 text-right bg-amber-50/50">თანხა ამ საკვებზე</th>
-                                                            <th className="py-4 px-2 w-10"></th>
+                                                            <th className="py-3 px-3">ერთეული</th>
+                                                            <th className="py-3 px-3 text-right">ერთ. ფასი</th>
+                                                            <th className="py-3 px-3 text-center">რაოდენობა</th>
+                                                            <th className="py-3 px-3 text-right bg-amber-50/50 text-amber-700">თანხა ამ საკვებზე</th>
+                                                            <th className="py-3 px-2 w-10"></th>
                                                         </>
                                                     ) : (
-                                                        <th className="py-4 px-4 text-right bg-amber-50/50">სტატუსი / ჯამი</th>
+                                                        <th className="py-3 px-3 text-right bg-amber-50/50 text-amber-700">სტატუსი / ჯამი</th>
                                                     )}
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-slate-100">
+                                            <tbody className="divide-y divide-slate-100 text-sm">
                                                 {menuItems.length === 0 ? (
-                                                    <tr><td colSpan={isAdmin ? 6 : 2} className="py-12 text-center text-slate-400 font-bold">მენიუ ცარიელია</td></tr>
+                                                    <tr><td colSpan={isAdmin ? 6 : 2} className="py-8 text-center text-slate-400 font-bold text-sm">მენიუ ცარიელია</td></tr>
                                                 ) : menuItems.map(item => {
                                                     const price = Number(item.unitPrice) || 0;
                                                     const qty = Number(item.quantity) || 0;
@@ -518,49 +514,48 @@
 
                                                     return (
                                                         <tr key={item.id} className="hover:bg-slate-50 transition-colors group">
-                                                            <td className="py-4 px-4">
-                                                                <div className="font-bold text-slate-900">{item.name}</div>
-                                                                {/* Only Admin sees requested portion in table */}
+                                                            <td className="py-2.5 px-3">
+                                                                <div className="font-bold text-slate-800">{item.name}</div>
                                                                 {isAdmin && item.portion && (
-                                                                    <div className="text-[11px] text-amber-700 mt-1 font-bold bg-amber-100 inline-block px-2 py-0.5 rounded border border-amber-200">
-                                                                        მოთხოვნილი პორცია: {item.portion}
+                                                                    <div className="text-[10px] text-amber-700 mt-0.5 font-bold bg-amber-50 inline-block px-1.5 py-0.5 rounded border border-amber-100">
+                                                                        პორცია: {item.portion}
                                                                     </div>
                                                                 )}
                                                             </td>
                                                             
                                                             {isAdmin ? (
                                                                 <>
-                                                                    <td className="py-4 px-4">
-                                                                        <input type="text" placeholder="მაგ. ცალი" value={item.unit} onChange={e => handleUpdateFood(item.id, 'unit', e.target.value)} className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-amber-500 outline-none" />
+                                                                    <td className="py-2.5 px-3">
+                                                                        <input type="text" placeholder="მაგ. ცალი" value={item.unit} onChange={e => handleUpdateFood(item.id, 'unit', e.target.value)} className="w-16 bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-amber-500 outline-none" />
                                                                     </td>
-                                                                    <td className="py-4 px-4 text-right">
+                                                                    <td className="py-2.5 px-3 text-right">
                                                                         <div className="flex justify-end items-center gap-1">
-                                                                            <input type="number" min="0" placeholder="0" value={item.unitPrice} onChange={e => handleUpdateFood(item.id, 'unitPrice', e.target.value)} className="w-20 text-right bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-sm font-bold focus:ring-2 focus:ring-amber-500 outline-none" />
+                                                                            <input type="number" min="0" placeholder="0" value={item.unitPrice} onChange={e => handleUpdateFood(item.id, 'unitPrice', e.target.value)} className="w-16 text-right bg-white border border-slate-200 rounded px-2 py-1 text-xs font-bold focus:ring-1 focus:ring-amber-500 outline-none" />
                                                                             <span className="text-slate-400 text-xs">₾</span>
                                                                         </div>
                                                                     </td>
-                                                                    <td className="py-4 px-4 text-center">
-                                                                        <input type="number" min="0" placeholder="0" value={item.quantity} onChange={e => handleUpdateFood(item.id, 'quantity', e.target.value)} className="w-16 text-center bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-sm font-bold focus:ring-2 focus:ring-amber-500 outline-none mx-auto block" />
+                                                                    <td className="py-2.5 px-3 text-center">
+                                                                        <input type="number" min="0" placeholder="0" value={item.quantity} onChange={e => handleUpdateFood(item.id, 'quantity', e.target.value)} className="w-14 text-center bg-white border border-slate-200 rounded px-2 py-1 text-xs font-bold focus:ring-1 focus:ring-amber-500 outline-none mx-auto block" />
                                                                     </td>
-                                                                    <td className="py-4 px-4 text-right bg-amber-50/20">
-                                                                        <span className="text-lg font-black text-slate-900 inline-block min-w-[80px] text-right">
+                                                                    <td className="py-2.5 px-3 text-right bg-amber-50/20">
+                                                                        <span className="text-sm font-black text-slate-800 inline-block min-w-[60px] text-right">
                                                                             {itemTotal} ₾
                                                                         </span>
                                                                     </td>
-                                                                    <td className="py-4 px-2 text-center">
-                                                                        <button onClick={() => handleDeleteFood(item.id)} className="text-slate-300 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100">
+                                                                    <td className="py-2.5 px-2 text-center">
+                                                                        <button onClick={() => handleDeleteFood(item.id)} className="text-slate-300 hover:text-rose-500 p-1 rounded hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100">
                                                                             <Icons.Trash />
                                                                         </button>
                                                                     </td>
                                                                 </>
                                                             ) : (
-                                                                <td className="py-4 px-4 text-right bg-amber-50/20">
+                                                                <td className="py-2.5 px-3 text-right bg-amber-50/20">
                                                                     {isMissingData ? (
-                                                                        <span className="text-[11px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-lg border border-amber-200">
-                                                                            ფასს დაამატებს ადმინისტრატორი
+                                                                        <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded border border-amber-200">
+                                                                            ფასს დაამატებს ადმინი
                                                                         </span>
                                                                     ) : (
-                                                                        <span className="text-lg font-black text-slate-900 inline-block min-w-[80px] text-right">
+                                                                        <span className="text-sm font-black text-slate-800 inline-block min-w-[60px] text-right">
                                                                             {itemTotal} ₾
                                                                         </span>
                                                                     )}
@@ -574,64 +569,63 @@
                                     </div>
                                     
                                     <div className="mt-4 flex justify-end">
-                                        <div className="bg-slate-900 text-white px-6 py-4 rounded-xl shadow-lg flex items-center gap-4">
-                                            <span className="text-slate-400 font-bold text-xs uppercase">საკვების ჯამი:</span>
-                                            <span className="text-2xl font-black text-amber-400">{stats.foodTotal} ₾</span>
+                                        <div className="bg-slate-800 text-white px-5 py-3 rounded-xl shadow flex items-center gap-3">
+                                            <span className="text-slate-300 font-bold text-[10px] uppercase">საკვების ჯამი:</span>
+                                            <span className="text-lg font-black text-amber-400">{stats.foodTotal} ₾</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="p-6 border-t border-slate-200 bg-white shrink-0">
-                                    <form onSubmit={handleAddFood} className="flex flex-col md:flex-row gap-4 items-end">
-                                        <div className="flex-1 w-full">
-                                            <label className="block text-xs font-bold text-slate-500 mb-1">საკვების სახელი *</label>
-                                            <input required type="text" placeholder="მაგ. ხაჭაპური" value={newFood.name} onChange={e => setNewFood({...newFood, name: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white" />
-                                        </div>
-                                        <div className="flex-1 w-full">
-                                            <label className="block text-xs font-bold text-slate-500 mb-1">პორცია (15 ადამიანზე) *</label>
-                                            <input required type="text" placeholder="მაგ. 3 ცალი" value={newFood.portion} onChange={e => setNewFood({...newFood, portion: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white" />
-                                        </div>
-                                        <button type="submit" className="bg-amber-500 text-white rounded-xl px-8 py-3 text-sm font-black hover:bg-amber-600 transition-all shadow-md w-full md:w-auto">
-                                            დამატება
-                                        </button>
-                                    </form>
-                                </div>
+                                {isAdmin && (
+                                    <div className="p-4 border-t border-slate-200 bg-white shrink-0">
+                                        <form onSubmit={handleAddFood} className="flex flex-col sm:flex-row gap-3 items-end">
+                                            <div className="flex-1 w-full">
+                                                <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">სახელი *</label>
+                                                <input required type="text" placeholder="მაგ. ხაჭაპური" value={newFood.name} onChange={e => setNewFood({...newFood, name: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white" />
+                                            </div>
+                                            <div className="flex-1 w-full">
+                                                <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">პორცია *</label>
+                                                <input required type="text" placeholder="მაგ. 3 ცალი" value={newFood.portion} onChange={e => setNewFood({...newFood, portion: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white" />
+                                            </div>
+                                            <button type="submit" className="bg-amber-500 text-white rounded-lg px-5 py-2 text-xs font-black hover:bg-amber-600 transition-all shadow-sm w-full sm:w-auto h-[34px]">
+                                                დამატება
+                                            </button>
+                                        </form>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
 
-                    {}
+                    {/* Login Modal (Slightly reduced padding) */}
                     {showLoginModal && (
-                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-[1cm]">
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
                             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowLoginModal(false)}></div>
-                            <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-lg modal-enter overflow-hidden border border-slate-200">
-                                <div className="p-10 text-center">
-                                    <div className="w-20 h-20 bg-indigo-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-600/40">
+                            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm modal-enter overflow-hidden border border-slate-200">
+                                <div className="p-8 text-center">
+                                    <div className="w-14 h-14 bg-indigo-600 text-white rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md shadow-indigo-600/30">
                                         <Icons.Lock />
                                     </div>
-                                    <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">ავტორიზაცია</h2>
-                                    <p className="text-slate-500 font-medium text-sm mb-8">მხოლოდ ადმინისტრატორისთვის</p>
+                                    <h2 className="text-xl font-black text-slate-800 tracking-tight mb-1">ავტორიზაცია</h2>
+                                    <p className="text-slate-500 font-medium text-xs mb-6">მხოლოდ ადმინისტრატორისთვის</p>
                                     
                                     <form onSubmit={handleLogin}>
-                                        <div className="mb-8">
+                                        <div className="mb-6">
                                             <input 
                                                 type="password" 
                                                 placeholder="პაროლი" 
                                                 value={passwordInput}
                                                 onChange={(e) => setPasswordInput(e.target.value)}
-                                                onCopy={e => e.preventDefault()}
-                                                onPaste={e => e.preventDefault()}
-                                                onDrop={e => e.preventDefault()}
                                                 autoComplete="off"
-                                                className="w-full text-center text-4xl tracking-[0.4em] font-black bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-5 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all text-slate-800 placeholder:tracking-normal placeholder:text-xl placeholder:-translate-y-1.5"
+                                                className="w-full text-center text-2xl tracking-[0.3em] font-black bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all text-slate-800 placeholder:tracking-normal placeholder:text-sm placeholder:-translate-y-1"
                                                 autoFocus
                                             />
                                         </div>
-                                        <div className="flex gap-4">
-                                            <button type="button" onClick={() => {setShowLoginModal(false); setPasswordInput('');}} className="flex-1 bg-slate-100 text-slate-700 font-bold rounded-xl px-4 py-4 hover:bg-slate-200 transition-colors text-lg">
+                                        <div className="flex gap-3">
+                                            <button type="button" onClick={() => {setShowLoginModal(false); setPasswordInput('');}} className="flex-1 bg-slate-100 text-slate-600 font-bold rounded-lg px-3 py-2.5 hover:bg-slate-200 transition-colors text-sm">
                                                 გაუქმება
                                             </button>
-                                            <button type="submit" className="flex-1 bg-indigo-600 text-white font-bold rounded-xl px-4 py-4 hover:bg-indigo-700 shadow-lg transition-all text-lg">
+                                            <button type="submit" className="flex-1 bg-indigo-600 text-white font-bold rounded-lg px-3 py-2.5 hover:bg-indigo-700 shadow transition-all text-sm">
                                                 შესვლა
                                             </button>
                                         </div>
@@ -641,21 +635,21 @@
                         </div>
                     )}
 
-                    {}
+                    {/* Confirm Dialog */}
                     {confirmDialog && (
-                        <div className="fixed inset-0 z-[70] flex items-center justify-center p-[1cm]">
+                        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
                             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setConfirmDialog(null)}></div>
-                            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm modal-enter p-8 text-center border border-slate-200">
-                                <div className="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-5">
+                            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm modal-enter p-6 text-center border border-slate-200">
+                                <div className="w-12 h-12 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Icons.Warning />
                                 </div>
-                                <h3 className="text-2xl font-black text-slate-900 mb-2">{confirmDialog.title}</h3>
-                                <p className="text-slate-500 font-medium mb-8 leading-relaxed">{confirmDialog.message}</p>
-                                <div className="flex gap-4">
-                                    <button onClick={() => setConfirmDialog(null)} className="flex-1 bg-slate-100 text-slate-700 font-bold rounded-xl py-3 hover:bg-slate-200 transition-colors">
+                                <h3 className="text-lg font-black text-slate-800 mb-2">{confirmDialog.title}</h3>
+                                <p className="text-slate-500 text-sm font-medium mb-6 leading-relaxed">{confirmDialog.message}</p>
+                                <div className="flex gap-3">
+                                    <button onClick={() => setConfirmDialog(null)} className="flex-1 bg-slate-100 text-slate-600 font-bold rounded-lg py-2.5 hover:bg-slate-200 transition-colors text-sm">
                                         გაუქმება
                                     </button>
-                                    <button onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }} className="flex-1 bg-slate-900 text-white font-bold rounded-xl py-3 hover:bg-black transition-colors">
+                                    <button onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }} className="flex-1 bg-slate-800 text-white font-bold rounded-lg py-2.5 hover:bg-slate-900 transition-colors text-sm">
                                         დადასტურება
                                     </button>
                                 </div>
@@ -663,22 +657,23 @@
                         </div>
                     )}
 
-                    <div className="fixed bottom-4 right-4 z-[80] flex flex-col gap-3 pointer-events-none">
+                    {/* Toasts */}
+                    <div className="fixed bottom-4 right-4 z-[80] flex flex-col gap-2 pointer-events-none">
                         {toasts.map(toast => (
-                            <div key={toast.id} className={`toast-enter pointer-events-auto flex items-center gap-3 px-6 py-4 rounded-xl shadow-xl border-l-4 min-w-[280px] max-w-sm bg-white
+                            <div key={toast.id} className={`toast-enter pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-lg shadow-lg border-l-4 min-w-[240px] max-w-sm bg-white
                                 ${toast.type === 'error' ? 'border-rose-500 text-slate-800' : 'border-emerald-500 text-slate-800'}`}>
                                 <div className={toast.type === 'error' ? 'text-rose-500' : 'text-emerald-500'}>
                                     {toast.type === 'error' ? <Icons.Warning /> : <Icons.Check />}
                                 </div>
-                                <p className="font-bold text-sm leading-snug">{toast.message}</p>
+                                <p className="font-bold text-xs leading-snug">{toast.message}</p>
                             </div>
                         ))}
                     </div>
 
-                    {/* Naked Loading Spinner */}
+                    {/* Loader */}
                     {isLoadingData && (
                         <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-[100]">
-                            <svg className="w-16 h-16 text-indigo-600 spinner drop-shadow-md" fill="none" viewBox="0 0 24 24">
+                            <svg className="w-12 h-12 text-indigo-600 spinner drop-shadow-md" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
